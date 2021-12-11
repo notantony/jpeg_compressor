@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+stdlib.h
+-
+string.h
+-
+windows.h
+-
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.cpp
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+
+F:/repo/cpp/jpeg_compressor/main.cpp
+iostream
+-
+fstream
+-
+ctime
+-
+string
+-
+jpeg_source/jpegenc.cpp
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.cpp
+jpeg_source/jpegdec.cpp
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp
+

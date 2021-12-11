@@ -1,0 +1,5 @@
+F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/JpegSource.dir
+F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/jpeg_encoder.dir
+F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/edit_cache.dir
+F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/jpec_decoder.dir
+F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/rebuild_cache.dir

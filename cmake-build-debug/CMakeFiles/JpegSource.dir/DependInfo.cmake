@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_CHECK_CXX
   "F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp" "F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/JpegSource.dir/jpeg_source/jpegdec.cpp.obj"
   "F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.cpp" "F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/JpegSource.dir/jpeg_source/jpegenc.cpp.obj"
+  "F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.cpp" "F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/JpegSource.dir/jpeg_source/my_compress.cpp.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "MSVC")
 

@@ -7,11 +7,19 @@
 #IncludeRegexTransform: 
 
 F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp
+vector
+-
+fstream
+-
+jpegenc.h
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
 stdio.h
 -
 stdlib.h
 -
 string.h
+-
+iostream
 -
 stdlib.h
 -
@@ -21,11 +29,19 @@ windows.h
 -
 
 F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.cpp
+jpegenc.h
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
 stdio.h
 -
 stdlib.h
 -
 math.h
+-
+vector
+-
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
+vector
 -
 
 F:/repo/cpp/jpeg_compressor/main.cpp

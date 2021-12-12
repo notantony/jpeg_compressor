@@ -106,6 +106,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named huffman
+
+# Build rule for target.
+huffman: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 /nologo -$(MAKEFLAGS) huffman
+.PHONY : huffman
+
+# fast build rule for target.
+huffman\fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\build
+.PHONY : huffman\fast
+
+#=============================================================================
 # Target rules for targets named JpegSource
 
 # Build rule for target.
@@ -117,6 +130,19 @@ JpegSource: cmake_check_build_system
 JpegSource\fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\JpegSource.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\JpegSource.dir\build
 .PHONY : JpegSource\fast
+
+#=============================================================================
+# Target rules for targets named jpeg_decoder
+
+# Build rule for target.
+jpeg_decoder: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 /nologo -$(MAKEFLAGS) jpeg_decoder
+.PHONY : jpeg_decoder
+
+# fast build rule for target.
+jpeg_decoder\fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpeg_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpeg_decoder.dir\build
+.PHONY : jpeg_decoder\fast
 
 #=============================================================================
 # Target rules for targets named jpeg_encoder
@@ -131,18 +157,77 @@ jpeg_encoder\fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpeg_encoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpeg_encoder.dir\build
 .PHONY : jpeg_encoder\fast
 
-#=============================================================================
-# Target rules for targets named jpec_decoder
+huffman\bitvector.obj: huffman\bitvector.cpp.obj
+.PHONY : huffman\bitvector.obj
 
-# Build rule for target.
-jpec_decoder: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 /nologo -$(MAKEFLAGS) jpec_decoder
-.PHONY : jpec_decoder
+# target to build an object file
+huffman\bitvector.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\bitvector.cpp.obj
+.PHONY : huffman\bitvector.cpp.obj
 
-# fast build rule for target.
-jpec_decoder\fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpec_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpec_decoder.dir\build
-.PHONY : jpec_decoder\fast
+huffman\bitvector.i: huffman\bitvector.cpp.i
+.PHONY : huffman\bitvector.i
+
+# target to preprocess a source file
+huffman\bitvector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\bitvector.cpp.i
+.PHONY : huffman\bitvector.cpp.i
+
+huffman\bitvector.s: huffman\bitvector.cpp.s
+.PHONY : huffman\bitvector.s
+
+# target to generate assembly for a file
+huffman\bitvector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\bitvector.cpp.s
+.PHONY : huffman\bitvector.cpp.s
+
+huffman\compressor.obj: huffman\compressor.cpp.obj
+.PHONY : huffman\compressor.obj
+
+# target to build an object file
+huffman\compressor.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\compressor.cpp.obj
+.PHONY : huffman\compressor.cpp.obj
+
+huffman\compressor.i: huffman\compressor.cpp.i
+.PHONY : huffman\compressor.i
+
+# target to preprocess a source file
+huffman\compressor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\compressor.cpp.i
+.PHONY : huffman\compressor.cpp.i
+
+huffman\compressor.s: huffman\compressor.cpp.s
+.PHONY : huffman\compressor.s
+
+# target to generate assembly for a file
+huffman\compressor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\compressor.cpp.s
+.PHONY : huffman\compressor.cpp.s
+
+huffman\huf_main.obj: huffman\huf_main.cpp.obj
+.PHONY : huffman\huf_main.obj
+
+# target to build an object file
+huffman\huf_main.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\huf_main.cpp.obj
+.PHONY : huffman\huf_main.cpp.obj
+
+huffman\huf_main.i: huffman\huf_main.cpp.i
+.PHONY : huffman\huf_main.i
+
+# target to preprocess a source file
+huffman\huf_main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\huf_main.cpp.i
+.PHONY : huffman\huf_main.cpp.i
+
+huffman\huf_main.s: huffman\huf_main.cpp.s
+.PHONY : huffman\huf_main.s
+
+# target to generate assembly for a file
+huffman\huf_main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\huffman.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\huffman.dir\huffman\huf_main.cpp.s
+.PHONY : huffman\huf_main.cpp.s
 
 jpeg_source\jpegdec.obj: jpeg_source\jpegdec.cpp.obj
 .PHONY : jpeg_source\jpegdec.obj
@@ -192,6 +277,30 @@ jpeg_source\jpegenc.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\JpegSource.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.s
 .PHONY : jpeg_source\jpegenc.cpp.s
 
+jpeg_source\my_compress.obj: jpeg_source\my_compress.cpp.obj
+.PHONY : jpeg_source\my_compress.obj
+
+# target to build an object file
+jpeg_source\my_compress.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\JpegSource.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj
+.PHONY : jpeg_source\my_compress.cpp.obj
+
+jpeg_source\my_compress.i: jpeg_source\my_compress.cpp.i
+.PHONY : jpeg_source\my_compress.i
+
+# target to preprocess a source file
+jpeg_source\my_compress.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\JpegSource.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.i
+.PHONY : jpeg_source\my_compress.cpp.i
+
+jpeg_source\my_compress.s: jpeg_source\my_compress.cpp.s
+.PHONY : jpeg_source\my_compress.s
+
+# target to generate assembly for a file
+jpeg_source\my_compress.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\JpegSource.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.s
+.PHONY : jpeg_source\my_compress.cpp.s
+
 main.obj: main.cpp.obj
 .PHONY : main.obj
 
@@ -221,7 +330,7 @@ main2.obj: main2.cpp.obj
 
 # target to build an object file
 main2.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpec_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpec_decoder.dir\main2.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpeg_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpeg_decoder.dir\main2.cpp.obj
 .PHONY : main2.cpp.obj
 
 main2.i: main2.cpp.i
@@ -229,7 +338,7 @@ main2.i: main2.cpp.i
 
 # target to preprocess a source file
 main2.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpec_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpec_decoder.dir\main2.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpeg_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpeg_decoder.dir\main2.cpp.i
 .PHONY : main2.cpp.i
 
 main2.s: main2.cpp.s
@@ -237,7 +346,7 @@ main2.s: main2.cpp.s
 
 # target to generate assembly for a file
 main2.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpec_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpec_decoder.dir\main2.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\jpeg_decoder.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\jpeg_decoder.dir\main2.cpp.s
 .PHONY : main2.cpp.s
 
 # Help Target
@@ -249,14 +358,27 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... JpegSource
-	@echo ... jpec_decoder
+	@echo ... huffman
+	@echo ... jpeg_decoder
 	@echo ... jpeg_encoder
+	@echo ... huffman/bitvector.obj
+	@echo ... huffman/bitvector.i
+	@echo ... huffman/bitvector.s
+	@echo ... huffman/compressor.obj
+	@echo ... huffman/compressor.i
+	@echo ... huffman/compressor.s
+	@echo ... huffman/huf_main.obj
+	@echo ... huffman/huf_main.i
+	@echo ... huffman/huf_main.s
 	@echo ... jpeg_source/jpegdec.obj
 	@echo ... jpeg_source/jpegdec.i
 	@echo ... jpeg_source/jpegdec.s
 	@echo ... jpeg_source/jpegenc.obj
 	@echo ... jpeg_source/jpegenc.i
 	@echo ... jpeg_source/jpegenc.s
+	@echo ... jpeg_source/my_compress.obj
+	@echo ... jpeg_source/my_compress.i
+	@echo ... jpeg_source/my_compress.s
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s

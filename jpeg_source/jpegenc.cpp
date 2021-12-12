@@ -26,6 +26,8 @@
 #ifndef JO_INCLUDE_JPEG_H
 #define JO_INCLUDE_JPEG_H
 
+
+#include "jpegenc.h"
  // To get a header file for this, either cut and paste the header,
  // or create jo_jpeg.h, #define JO_JPEG_HEADER_FILE_ONLY, and
  // then include jo_jpeg.c from it.
@@ -44,10 +46,11 @@ extern bool jo_write_jpg(const char *filename, const void *data, int width, int 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 
 static const unsigned char s_jo_ZigZag[] = { 0,1,5,6,14,15,27,28,2,4,7,13,16,26,29,42,3,8,12,17,25,30,41,43,9,11,18,24,31,40,44,53,10,19,23,32,39,45,52,54,20,22,33,38,46,51,55,60,21,34,37,47,50,56,59,61,35,36,48,49,57,58,62,63 };
 
-static void jo_writeBits(FILE *fp, int &bitBuf, int &bitCnt, const unsigned short *bs) {
+extern void jo_writeBits(FILE *fp, int &bitBuf, int &bitCnt, const unsigned short *bs) {
 	bitCnt += bs[1];
 	bitBuf |= bs[0] << (24 - bitCnt);
 	while (bitCnt >= 8) {
@@ -136,15 +139,13 @@ static int jo_processDU(FILE *fp, int &bitBuf, int &bitCnt, float *CDU, int du_s
 		}
 	}
 
-    printf("Block:\n");
-    for (int my_i = 0; my_i < 64; ++my_i) {
-//        printf("%hhx ", (char) DU[my_i]);
-        printf("%d ", DU[my_i]);
-//        if (my_i % 8 == 7) {
-//            printf("\n");
-//        }
-    }
-    printf("\n");
+//    printf("Block:\n");
+
+    printf("DC: %d \n", DU[0]);
+//    for (int my_i = 0; my_i < 64; ++my_i) {
+//        printf("%d ", DU[my_i]);
+//    }
+//    printf("\n");
 
 	// Encode DC
 	int diff = DU[0] - DC;
@@ -186,6 +187,67 @@ static int jo_processDU(FILE *fp, int &bitBuf, int &bitCnt, float *CDU, int du_s
 		jo_writeBits(fp, bitBuf, bitCnt, EOB);
 	}
 	return DU[0];
+}
+
+static int my_processDU(const std::vector<int> &data, FILE *fp, int &bitBuf, int &bitCnt, int DC, const unsigned short HTDC[256][2], const unsigned short HTAC[256][2]) {
+    const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
+    const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
+
+
+    // Quantize/descale/zigzag the coefficients
+    int DU[64];
+    for (int i = 0; i < 64; ++i) {
+        DU[i] = data[i];
+    }
+
+    printf("DC: %d \n", DU[0]);
+
+//    printf("Block:\n");
+//    for (int my_i = 0; my_i < 64; ++my_i) {
+//        printf("%d ", DU[my_i]);
+//    }
+//    printf("\n");
+
+    // Encode DC
+    int diff = DU[0] - DC;
+    if (diff == 0) {
+        jo_writeBits(fp, bitBuf, bitCnt, HTDC[0]);
+    }
+    else {
+        unsigned short bits[2];
+        jo_calcBits(diff, bits);
+        jo_writeBits(fp, bitBuf, bitCnt, HTDC[bits[1]]);
+        jo_writeBits(fp, bitBuf, bitCnt, bits);
+    }
+    // Encode ACs
+    int end0pos = 63;
+    for (; (end0pos > 0) && (DU[end0pos] == 0); --end0pos) {
+    }
+    // end0pos = first element in reverse order !=0
+    if (end0pos == 0) {
+        jo_writeBits(fp, bitBuf, bitCnt, EOB);
+        return DU[0];
+    }
+    for (int i = 1; i <= end0pos; ++i) {
+        int startpos = i;
+        for (; DU[i] == 0 && i <= end0pos; ++i) {
+        }
+        int nrzeroes = i - startpos;
+        if (nrzeroes >= 16) {
+            int lng = nrzeroes >> 4;
+            for (int nrmarker = 1; nrmarker <= lng; ++nrmarker)
+                jo_writeBits(fp, bitBuf, bitCnt, M16zeroes);
+            nrzeroes &= 15;
+        }
+        unsigned short bits[2];
+        jo_calcBits(DU[i], bits);
+        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
+        jo_writeBits(fp, bitBuf, bitCnt, bits);
+    }
+    if (end0pos != 63) {
+        jo_writeBits(fp, bitBuf, bitCnt, EOB);
+    }
+    return DU[0];
 }
 
 bool jo_write_jpg(const char *filename, const void *data, int width, int height, int comp, int quality) {
@@ -317,9 +379,12 @@ bool jo_write_jpg(const char *filename, const void *data, int width, int height,
 	const unsigned char *dataB = dataR + ofsB;
 	int DCY = 0, DCU = 0, DCV = 0;
 	int bitBuf = 0, bitCnt = 0;
+    int i = 0;
 	if (subsample) { // TRUE
 		for (int y = 0; y < height; y += 16) {
 			for (int x = 0; x < width; x += 16) {
+                printf("Blocks %d-%d:\n", i, i + 5);
+                i += 6;
 				float Y[256], U[256], V[256];
 				for (int row = y, pos = 0; row < y + 16; ++row) {
 					for (int col = x; col < x + 16; ++col, ++pos) {

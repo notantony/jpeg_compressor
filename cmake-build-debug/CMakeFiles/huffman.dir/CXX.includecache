@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+F:/repo/cpp/jpeg_compressor/huffman/bitvector.cpp
+bitvector.h
+F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
+stdexcept
+-
+
+F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
+vector
+-
+cstddef
+-
+
+F:/repo/cpp/jpeg_compressor/huffman/compressor.cpp
+compressor.h
+F:/repo/cpp/jpeg_compressor/huffman/compressor.h
+
+F:/repo/cpp/jpeg_compressor/huffman/compressor.h
+fstream
+-
+iostream
+-
+exception
+-
+algorithm
+-
+memory
+-
+queue
+-
+list
+-
+bitvector.h
+F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
+

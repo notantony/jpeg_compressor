@@ -93,19 +93,40 @@ CMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.s: cmake_force
  /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) /FoNUL /FAs /FaCMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.s /c F:\repo\cpp\jpeg_compressor\jpeg_source\jpegenc.cpp
 <<
 
+CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj: CMakeFiles\JpegSource.dir\flags.make
+CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj: ..\jpeg_source\my_compress.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=F:\repo\cpp\jpeg_compressor\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/JpegSource.dir/jpeg_source/my_compress.cpp.obj"
+	"F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\bin\HostX86\x86\cl.exe" @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) /FoCMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj /FdCMakeFiles\JpegSource.dir\JpegSource.pdb /FS -c F:\repo\cpp\jpeg_compressor\jpeg_source\my_compress.cpp
+<<
+
+CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/JpegSource.dir/jpeg_source/my_compress.cpp.i"
+	"F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\bin\HostX86\x86\cl.exe" > CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.i @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E F:\repo\cpp\jpeg_compressor\jpeg_source\my_compress.cpp
+<<
+
+CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/JpegSource.dir/jpeg_source/my_compress.cpp.s"
+	"F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\bin\HostX86\x86\cl.exe" @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) /FoNUL /FAs /FaCMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.s /c F:\repo\cpp\jpeg_compressor\jpeg_source\my_compress.cpp
+<<
+
 # Object files for target JpegSource
 JpegSource_OBJECTS = \
 "CMakeFiles\JpegSource.dir\jpeg_source\jpegdec.cpp.obj" \
-"CMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.obj"
+"CMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.obj" \
+"CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj"
 
 # External object files for target JpegSource
 JpegSource_EXTERNAL_OBJECTS =
 
 JpegSource.lib: CMakeFiles\JpegSource.dir\jpeg_source\jpegdec.cpp.obj
 JpegSource.lib: CMakeFiles\JpegSource.dir\jpeg_source\jpegenc.cpp.obj
+JpegSource.lib: CMakeFiles\JpegSource.dir\jpeg_source\my_compress.cpp.obj
 JpegSource.lib: CMakeFiles\JpegSource.dir\build.make
 JpegSource.lib: CMakeFiles\JpegSource.dir\objects1.rsp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=F:\repo\cpp\jpeg_compressor\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library JpegSource.lib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=F:\repo\cpp\jpeg_compressor\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library JpegSource.lib"
 	$(CMAKE_COMMAND) -P CMakeFiles\JpegSource.dir\cmake_clean_target.cmake
 	"F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\bin\HostX86\x86\lib.exe" /nologo /machine:X86 /out:JpegSource.lib @CMakeFiles\JpegSource.dir\objects1.rsp 
 

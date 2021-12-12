@@ -6,17 +6,19 @@
 
 #IncludeRegexTransform: 
 
-F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp
-stdio.h
+F:/repo/cpp/jpeg_compressor/huffman/huf_main.h
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.cpp
+my_compress.h
+F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.h
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.h
+vector
 -
-stdlib.h
+fstream
 -
-string.h
--
-stdlib.h
--
-string.h
--
-windows.h
+../huffman/huf_main.h
+F:/repo/cpp/jpeg_compressor/huffman/huf_main.h
+iostream
 -
 

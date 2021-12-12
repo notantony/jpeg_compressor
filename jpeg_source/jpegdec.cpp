@@ -1,5 +1,8 @@
+
 #include <vector>
 #include <fstream>
+#include "jpegenc.h"
+#include "my_compress.h"
 
 using namespace std;
 
@@ -145,6 +148,10 @@ void njInit(void);
 // Return value: The error code in case of failure, or NJ_OK (zero) on success.
 nj_result_t njDecode(const void* jpeg, const int size);
 
+
+nj_result_t myDecode(const void* jpeg, int size, const string &, bool modeEncode);
+
+
 // njGetWidth: Return the width (in pixels) of the most recently decoded
 // image. If njDecode() failed, the result of njGetWidth() is undefined.
 int njGetWidth(void);
@@ -245,15 +252,15 @@ int decode_main(int argc, const char* argv[])
     fclose(f);
 
 
-    std::ofstream output("./root/my_compressed.bin.jpeg", std::ios_base::binary);
+    std::ofstream output("./my_compressed.bin.jpeg", std::ios_base::binary);
     if (!output.is_open()) {
         std::cout << "Cannot open file for writing\n";
         return 1;
     }
-    myDecode(buf, size, std::ofstream);
 
     njInit();
-    if (njDecode(buf, size)) {
+//    if (njDecode(buf, size)) {
+    if (myDecode(buf, size, "./my_compressed.bin.jpeg", true)) {
         free((void*)buf);
         printf("Error decoding the input file.\n");
         return 1;
@@ -689,50 +696,50 @@ int my_dcpred;
 static const unsigned char my_s_jo_ZigZag[] = { 0,1,5,6,14,15,27,28,2,4,7,13,16,26,29,42,3,8,12,17,25,30,41,43,9,11,18,24,31,40,44,53,10,19,23,32,39,45,52,54,20,22,33,38,46,51,55,60,21,34,37,47,50,56,59,61,35,36,48,49,57,58,62,63 };
 
 
-NJ_INLINE void njDecodeBlock(nj_component_t* c, unsigned char* out) 
+NJ_INLINE void njDecodeBlock(nj_component_t* c, unsigned char* out, vector<int> &blockMatrix)
 {
     unsigned char code = 0;
     int value, coef = 0;
     njFillMem(nj.block, 0, sizeof(nj.block));
 
-    my_dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
-    printf("\n = %d = \n ", my_dcpred);
-    c->dcpred += my_dcpred;
+//    my_dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
+//    printf("\n = %d = \n ", my_dcpred);
+
+    c->dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
+    int tmp = c->dcpred;
+//    fprintf(stderr, "\n = %d = \n ", c->dcpred);
 
     nj.block[0] = (c->dcpred) * nj.qtab[c->qtsel][0];
 
-    int my_mat[64];
-    my_mat[0] = c->dcpred;
+    blockMatrix = vector<int>(64, 0);
+
+    blockMatrix[0] = tmp;
+
+    int bmIdx = 1;
 
     do 
 	{
         value = njGetVLC(&nj.vlctab[c->actabsel][0], &code);
-        printf("%d %d\n", value, (code >> 4));
-
+//        printf("%d %d\n", value, (code >> 4));
+        for (int i = 0; i < (code >> 4); ++i) {
+            blockMatrix[bmIdx++] = 0;
+        }
+        blockMatrix[bmIdx++] = value;
 
         if (!code) break;  // EOB
         if (!(code & 0x0F) && (code != 0xF0)) njThrow(NJ_SYNTAX_ERROR);
         coef += (code >> 4) + 1;
         if (coef > 63) njThrow(NJ_SYNTAX_ERROR);
-        my_mat[(int) njZZ[coef]] = value;
         nj.block[(int) njZZ[coef]] = value * nj.qtab[c->qtsel][coef];
     } 
 	while (coef < 63);
-    printf("^vlc");
+//    printf("^vlc");
 
-    printf("Block:\n");
-    for (int my_i = 0; my_i < 64; ++my_i) {
-//        printf("%hhx ",  (char) nj.block[njZZ[my_i]]);
-
-        printf("%u ", my_mat[my_s_jo_ZigZag[my_i]]);
-
-//        printf("%d ", (char) nj.block[my_s_jo_ZigZag[my_i]]);
-
-//        if (my_coef % 8 == 7) {
-//            printf("\n");
-//        }
-    }
-    printf("\n");
+//    printf("Block:\n");
+//    for (int my_i = 0; my_i < 64; ++my_i) {
+//        printf("%d ", (signed char) blockMatrix[my_i]);
+//    }
+//    printf("\n");
 
 	for (coef = 0; coef < 64; coef += 8)
 	{
@@ -754,10 +761,13 @@ NJ_INLINE void njDecodeBlock(nj_component_t* c, unsigned char* out)
 //        }
 //    }
 //    printf("\n");
-      
 }
 
-NJ_INLINE void njDecodeScan(void) {
+NJ_INLINE void njDecodeScanEncoder(vector<unsigned char> &target) {
+    const unsigned char *decode_scan_start = nj.pos;
+
+    vector<vector<int>> blocks;
+
     int i, mbx, mby, sbx, sby;
     int rstcount = nj.rstinterval, nextrst = 0;
     nj_component_t* c;
@@ -781,9 +791,84 @@ NJ_INLINE void njDecodeScan(void) {
                 for (sbx = 0;  sbx < c->ssx;  ++sbx) {
 //                    printf("Component %d, sbx: %d, sby: %d\n", i, sbx, sby);
 //                    printf("mbx: %d, mby: %d\n", mbx, mby);
+                    printf("Header: LEN LEN N_CHANNELS (CH_ID DC_HF_ID-AC_HF_ID) x N_CHANNELS 00 3F 00\n");
+                    int beforeSize = target.size();
+                    for (const unsigned char *ch = (const unsigned char *)decode_scan_start; ch < nj.pos; ++ch) {
+                        printf("%hhx ", *ch);
+                        target.push_back(*ch);
+                    }
+                    printf("\nHeader size: %d, expected %d\n", target.size() - beforeSize, nj.ncomp * 2 + 3 + 3);
 
-                    njDecodeBlock(c, &c->pixels[((mby * c->ssy + sby) * c->stride + mbx * c->ssx + sbx) << 3]);
+                    vector<int> blockMatrix;
+                    njDecodeBlock(c, &c->pixels[((mby * c->ssy + sby) * c->stride + mbx * c->ssx + sbx) << 3], blockMatrix);
 
+                    for (auto ch: blockMatrix) {
+                        target.push_back(ch);
+                    }
+
+                    decode_scan_start = nj.pos;
+//                    printf("%d\n", ((mby * c->ssy + sby) * c->stride + mbx * c->ssx + sbx) << 3);
+
+                    njCheckError();
+                }
+        if (++mbx >= nj.mbwidth) {
+            mbx = 0;
+            if (++mby >= nj.mbheight) break;
+        }
+        if (nj.rstinterval && !(--rstcount)) {
+            njByteAlign();
+            i = njGetBits(16);
+            if (((i & 0xFFF8) != 0xFFD0) || ((i & 7) != nextrst)) njThrow(NJ_SYNTAX_ERROR);
+            nextrst = (nextrst + 1) & 7;
+            rstcount = nj.rstinterval;
+            for (i = 0;  i < 3;  ++i)
+                nj.comp[i].dcpred = 0;
+        }
+    }
+    nj.error = __NJ_FINISHED;
+}
+
+
+NJ_INLINE void njDecodeScanDecoder(vector<unsigned char> &target, vector<vector<int>> &blocks) {
+    const unsigned char *decode_scan_start = nj.pos;
+
+    int i, mbx, mby, sbx, sby;
+    int rstcount = nj.rstinterval, nextrst = 0;
+    nj_component_t* c;
+    njDecodeLength();
+    njCheckError();
+    if (nj.length < (4 + 2 * nj.ncomp)) njThrow(NJ_SYNTAX_ERROR);
+    if (nj.pos[0] != nj.ncomp) njThrow(NJ_UNSUPPORTED);
+    njSkip(1);
+    for (i = 0, c = nj.comp;  i < nj.ncomp;  ++i, ++c) {
+        if (nj.pos[0] != c->cid) njThrow(NJ_SYNTAX_ERROR);
+        if (nj.pos[1] & 0xEE) njThrow(NJ_SYNTAX_ERROR);
+        c->dctabsel = nj.pos[1] >> 4;
+        c->actabsel = (nj.pos[1] & 1) | 2;
+        njSkip(2);
+    }
+    if (nj.pos[0] || (nj.pos[1] != 63) || nj.pos[2]) njThrow(NJ_UNSUPPORTED);
+    njSkip(nj.length);
+    for (mbx = mby = 0;;) {
+        for (i = 0, c = nj.comp;  i < nj.ncomp;  ++i, ++c)
+            for (sby = 0;  sby < c->ssy;  ++sby)
+                for (sbx = 0;  sbx < c->ssx;  ++sbx) {
+
+//                    printf("Header: LEN LEN N_CHANNELS (CH_ID DC_HF_ID-AC_HF_ID) x N_CHANNELS 00 3F 00\n");
+//                    int beforeSize = target.size();
+                    for (const unsigned char *ch = (const unsigned char *)decode_scan_start; ch < nj.pos; ++ch) {
+//                        printf("%hhx ", *ch);
+                        target.push_back(*ch);
+                    }
+//                    printf("\nHeader size: %d, expected %d\n", target.size() - beforeSize, nj.ncomp * 2 + 3 + 3);
+
+                    vector<int> blockMatrix;
+                    njDecodeBlock(c, &c->pixels[((mby * c->ssy + sby) * c->stride + mbx * c->ssx + sbx) << 3], blockMatrix);
+                    blocks.push_back(blockMatrix);
+
+
+
+                    decode_scan_start = nj.pos;
 //                    printf("%d\n", ((mby * c->ssy + sby) * c->stride + mbx * c->ssx + sbx) << 3);
 
                     njCheckError();
@@ -965,7 +1050,46 @@ void njDone(void) {
     njInit();
 }
 
-int myDecode(const void* jpeg, const int size, ofstream &output_file, bool modeEncode = true) {
+const unsigned short YDC_HT[256][2] = { {0,2},{2,3},{3,3},{4,3},{5,3},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9} };
+const unsigned short UVDC_HT[256][2] = { {0,2},{1,2},{2,2},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9},{1022,10},{2046,11} };
+const unsigned short YAC_HT[256][2] = {
+        {10,4},{0,2},{1,2},{4,3},{11,4},{26,5},{120,7},{248,8},{1014,10},{65410,16},{65411,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {12,4},{27,5},{121,7},{502,9},{2038,11},{65412,16},{65413,16},{65414,16},{65415,16},{65416,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {28,5},{249,8},{1015,10},{4084,12},{65417,16},{65418,16},{65419,16},{65420,16},{65421,16},{65422,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {58,6},{503,9},{4085,12},{65423,16},{65424,16},{65425,16},{65426,16},{65427,16},{65428,16},{65429,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {59,6},{1016,10},{65430,16},{65431,16},{65432,16},{65433,16},{65434,16},{65435,16},{65436,16},{65437,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {122,7},{2039,11},{65438,16},{65439,16},{65440,16},{65441,16},{65442,16},{65443,16},{65444,16},{65445,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {123,7},{4086,12},{65446,16},{65447,16},{65448,16},{65449,16},{65450,16},{65451,16},{65452,16},{65453,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {250,8},{4087,12},{65454,16},{65455,16},{65456,16},{65457,16},{65458,16},{65459,16},{65460,16},{65461,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {504,9},{32704,15},{65462,16},{65463,16},{65464,16},{65465,16},{65466,16},{65467,16},{65468,16},{65469,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {505,9},{65470,16},{65471,16},{65472,16},{65473,16},{65474,16},{65475,16},{65476,16},{65477,16},{65478,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {506,9},{65479,16},{65480,16},{65481,16},{65482,16},{65483,16},{65484,16},{65485,16},{65486,16},{65487,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {1017,10},{65488,16},{65489,16},{65490,16},{65491,16},{65492,16},{65493,16},{65494,16},{65495,16},{65496,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {1018,10},{65497,16},{65498,16},{65499,16},{65500,16},{65501,16},{65502,16},{65503,16},{65504,16},{65505,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {2040,11},{65506,16},{65507,16},{65508,16},{65509,16},{65510,16},{65511,16},{65512,16},{65513,16},{65514,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {65515,16},{65516,16},{65517,16},{65518,16},{65519,16},{65520,16},{65521,16},{65522,16},{65523,16},{65524,16},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {2041,11},{65525,16},{65526,16},{65527,16},{65528,16},{65529,16},{65530,16},{65531,16},{65532,16},{65533,16},{65534,16},{0,0},{0,0},{0,0},{0,0},{0,0}
+};
+const unsigned short UVAC_HT[256][2] = {
+        {0,2},{1,2},{4,3},{10,4},{24,5},{25,5},{56,6},{120,7},{500,9},{1014,10},{4084,12},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {11,4},{57,6},{246,8},{501,9},{2038,11},{4085,12},{65416,16},{65417,16},{65418,16},{65419,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {26,5},{247,8},{1015,10},{4086,12},{32706,15},{65420,16},{65421,16},{65422,16},{65423,16},{65424,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {27,5},{248,8},{1016,10},{4087,12},{65425,16},{65426,16},{65427,16},{65428,16},{65429,16},{65430,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {58,6},{502,9},{65431,16},{65432,16},{65433,16},{65434,16},{65435,16},{65436,16},{65437,16},{65438,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {59,6},{1017,10},{65439,16},{65440,16},{65441,16},{65442,16},{65443,16},{65444,16},{65445,16},{65446,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {121,7},{2039,11},{65447,16},{65448,16},{65449,16},{65450,16},{65451,16},{65452,16},{65453,16},{65454,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {122,7},{2040,11},{65455,16},{65456,16},{65457,16},{65458,16},{65459,16},{65460,16},{65461,16},{65462,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {249,8},{65463,16},{65464,16},{65465,16},{65466,16},{65467,16},{65468,16},{65469,16},{65470,16},{65471,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {503,9},{65472,16},{65473,16},{65474,16},{65475,16},{65476,16},{65477,16},{65478,16},{65479,16},{65480,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {504,9},{65481,16},{65482,16},{65483,16},{65484,16},{65485,16},{65486,16},{65487,16},{65488,16},{65489,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {505,9},{65490,16},{65491,16},{65492,16},{65493,16},{65494,16},{65495,16},{65496,16},{65497,16},{65498,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {506,9},{65499,16},{65500,16},{65501,16},{65502,16},{65503,16},{65504,16},{65505,16},{65506,16},{65507,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {2041,11},{65508,16},{65509,16},{65510,16},{65511,16},{65512,16},{65513,16},{65514,16},{65515,16},{65516,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {16352,14},{65517,16},{65518,16},{65519,16},{65520,16},{65521,16},{65522,16},{65523,16},{65524,16},{65525,16},{0,0},{0,0},{0,0},{0,0},{0,0},
+        {1018,10},{32707,15},{65526,16},{65527,16},{65528,16},{65529,16},{65530,16},{65531,16},{65532,16},{65533,16},{65534,16},{0,0},{0,0},{0,0},{0,0},{0,0}
+};
+
+nj_result_t myDecode(const void* jpeg, const int size, const string &output_file, bool modeEncode) {
     vector<unsigned char> target;
 
 //    vector<unsigned char> jpeg_data;
@@ -995,64 +1119,70 @@ int myDecode(const void* jpeg, const int size, ofstream &output_file, bool modeE
                 printf("case 0xDA - Scan\n");
                 printf("height, width: %d %d\n", nj.height, nj.width);
 
-                for (const unsigned char *c = (const unsigned char *)jpeg; c < &nj.pos[-1]; ++c) {
+                for (const unsigned char *c = (const unsigned char *)jpeg; c <= &nj.pos[-1]; ++c) {
                     target.push_back(*c);
                 }
 
-                printf("HEADER: %u", target.size());
+                printf("HEADER_LEN: %u, last two bytes: %x %x\n", target.size(), target[target.size() - 2], target.back());
 
-                if (modeEncode) {
-                    njDecodeScan();
+//                if (modeEncode) { // nj.pos -> after_scan
+                if (false) { // nj.pos -> after_scan
+                    njDecodeScanEncoder(target);
 
-                    for (unsigned char c: target) {
-                        output_file << c;
-                    }
-                    nj.error = NJ_OK;
-                    return nj.error;
+
+
                 } else {
+                    vector<vector<int>> blocks;
+
+//                    for (unsigned char c: target) {
+//                        output_file << c;
+//                    }
+
+
+                    njDecodeScanDecoder(target, blocks);
+
+                    cout << "HEADER_SIZE: " << target.size() << "\n";
+
+                    cout << blocks.size() << "\n";
+                    cout << "BLOCKS_SIZE: " << myCompress(blocks).size();
+
                     return NJ_UNSUPPORTED;
+
+
+                    FILE *fp = fopen("./from_compressed.jpeg", "wb");
+                    if (!fp) {
+                        printf("FILE ERROR\n");
+                        return NJ_UNSUPPORTED;
+                    }
+                    printf("Decoder: header size = %d", target.size());
+                    for (unsigned char c: target) {
+                        putc(c, fp);
+                    }
+
+                    int DCY = 0, DCU = 0, DCV = 0;
+                    int bitBuf = 0, bitCnt = 0;
+
+                    for (int i = 0; i < blocks.size(); i += 6) {
+                        printf("Blocks %d-%d:\n", i, i + 5);
+                        DCY = my_processDU(blocks[i], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
+                        DCY = my_processDU(blocks[i + 1], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
+                        DCY = my_processDU(blocks[i + 2], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
+                        DCY = my_processDU(blocks[i + 3], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
+
+                        DCU = my_processDU(blocks[i + 4], fp, bitBuf, bitCnt, DCU, UVDC_HT, UVAC_HT);
+                        DCV = my_processDU(blocks[i + 5], fp, bitBuf, bitCnt, DCV, UVDC_HT, UVAC_HT);
+                    }
+                    static const unsigned short fillBits[] = { 0x7F, 7 };
+                    jo_writeBits(fp, bitBuf, bitCnt, fillBits);
+                    putc(0xFF, fp);
+                    putc(0xD9, fp);
+
+                    fclose(fp);
                 }
+                nj.error = NJ_OK;
+                return nj.error;
 
                 break;
-            case 0xFE: njSkipMarker(); printf("case 0xFE - Skip\n"); break;  // 11111110_2 - comment section
-                // start, next two bytes are the comment length (including itself)
-            default:
-                if ((nj.pos[-1] & 0xF0) == 0xE0) {
-                    printf("case default - Skip\n");
-                    njSkipMarker();
-                } else {
-                    return NJ_UNSUPPORTED;
-                }
-        }
-    }
-    if (nj.error != __NJ_FINISHED) return nj.error;
-    nj.error = NJ_OK;
-    njConvert();
-    return nj.error;
-}
-
-nj_result_t njDecode(const void* jpeg, const int size) {
-    njDone();
-    nj.pos = (const unsigned char*) jpeg;
-    nj.size = size & 0x7FFFFFFF;
-    if (nj.size < 2) return NJ_NO_JPEG;
-    if ((nj.pos[0] ^ 0xFF) | (nj.pos[1] ^ 0xD8)) return NJ_NO_JPEG; // FF D8 - jpeg start
-    njSkip(2);
-    while (!nj.error) {
-        if ((nj.size < 2) || (nj.pos[0] != 0xFF)) return NJ_SYNTAX_ERROR;
-        njSkip(2);
-        switch (nj.pos[-1]) {
-            case 0xC0: njDecodeSOF();  printf("case 0xC0 - SOF\n"); break;  // 11000000_2
-            case 0xC4: njDecodeDHT();  printf("case 0xC4 - DHT\n"); break;  // 11000100_2
-            case 0xDB: njDecodeDQT();  printf("case 0xDB - DQT\n"); break;  // 11011011_2 - quantization table
-            case 0xDD: njDecodeDRI();  printf("case 0xDD - DRI\n"); break;  // 11011101_2
-            case 0xDA:
-                printf("case 0xDA - Scan\n");
-                printf("height, width: %d %d\n", nj.height, nj.width);
-                njDecodeScan();
-//                nj.error = NJ_OK;
-//                return nj.error;
-                break;  // 11011010_2
             case 0xFE: njSkipMarker(); printf("case 0xFE - Skip\n"); break;  // 11111110_2 - comment section
                 // start, next two bytes are the comment length (including itself)
             default:

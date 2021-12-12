@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="jpeg_compressor"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="msvc8"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 all"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="huffman">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/huffman.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 huffman"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="huffman/fast">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/huffman.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 huffman/fast"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="JpegSource">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/JpegSource.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 JpegSource"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="JpegSource/fast">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/JpegSource.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 JpegSource/fast"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jpeg_decoder">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/jpeg_decoder.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 jpeg_decoder"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jpeg_decoder/fast">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/jpeg_decoder.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 jpeg_decoder/fast"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jpeg_encoder">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/jpeg_encoder.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 jpeg_encoder"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jpeg_encoder/fast">
+				<Option output="F:/repo/cpp/jpeg_compressor/cmake-build-debug/jpeg_encoder.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\ATLMFC\include"/>
+					<Add directory="F:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.15063.0\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 jpeg_encoder/fast"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 edit_cache"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="F:/repo/cpp/jpeg_compressor/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f F:\repo\cpp\jpeg_compressor\cmake-build-debug\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/bitvector.cpp">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/bitvector.h">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/compressor.cpp">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/compressor.h">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/huf_main.cpp">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/huffman/huf_main.h">
+			<Option target="huffman"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp">
+			<Option target="JpegSource"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.cpp">
+			<Option target="JpegSource"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h">
+			<Option target="JpegSource"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.cpp">
+			<Option target="JpegSource"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.h">
+			<Option target="JpegSource"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/main.cpp">
+			<Option target="jpeg_encoder"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/main2.cpp">
+			<Option target="jpeg_decoder"/>
+		</Unit>
+		<Unit filename="F:/repo/cpp/jpeg_compressor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

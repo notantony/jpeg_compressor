@@ -47,7 +47,8 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/huffman.dir/DependInfo.cmake"
   "CMakeFiles/JpegSource.dir/DependInfo.cmake"
+  "CMakeFiles/jpeg_decoder.dir/DependInfo.cmake"
   "CMakeFiles/jpeg_encoder.dir/DependInfo.cmake"
-  "CMakeFiles/jpec_decoder.dir/DependInfo.cmake"
   )

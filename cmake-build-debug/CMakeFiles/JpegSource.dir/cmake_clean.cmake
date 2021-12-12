@@ -1,6 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/JpegSource.dir/jpeg_source/jpegdec.cpp.obj"
   "CMakeFiles/JpegSource.dir/jpeg_source/jpegenc.cpp.obj"
+  "CMakeFiles/JpegSource.dir/jpeg_source/my_compress.cpp.obj"
   "JpegSource.lib"
   "JpegSource.pdb"
 )

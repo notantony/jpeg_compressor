@@ -8,9 +8,33 @@
 
 F:/repo/cpp/jpeg_compressor/huffman/huf_main.h
 
-F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.cpp
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegdec.cpp
+vector
+-
+fstream
+-
+jpegenc.h
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
 my_compress.h
 F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+iostream
+-
+stdlib.h
+-
+string.h
+-
+windows.h
+-
+
+F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
+vector
+-
 
 F:/repo/cpp/jpeg_compressor/jpeg_source/my_compress.h
 vector
@@ -20,5 +44,7 @@ fstream
 ../huffman/huf_main.h
 F:/repo/cpp/jpeg_compressor/huffman/huf_main.h
 iostream
+-
+string
 -
 

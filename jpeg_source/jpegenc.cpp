@@ -47,6 +47,7 @@ extern bool jo_write_jpg(const char *filename, const void *data, int width, int 
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
+#include <iostream>
 
 static const unsigned char s_jo_ZigZag[] = { 0,1,5,6,14,15,27,28,2,4,7,13,16,26,29,42,3,8,12,17,25,30,41,43,9,11,18,24,31,40,44,53,10,19,23,32,39,45,52,54,20,22,33,38,46,51,55,60,21,34,37,47,50,56,59,61,35,36,48,49,57,58,62,63 };
 
@@ -189,6 +190,79 @@ static int jo_processDU(FILE *fp, int &bitBuf, int &bitCnt, float *CDU, int du_s
 	return DU[0];
 }
 
+extern std::vector<int> my_processDU_Better(const std::vector<int> &data, FILE *fp, int &bitBuf, int &bitCnt, const std::vector<int>&DCs, const unsigned short HTDC[256][2], const unsigned short HTAC[256][2]) {
+    const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
+    const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
+
+
+    // Quantize/descale/zigzag the coefficients
+    int DU[64];
+    for (int i = 0; i < 64; ++i) {
+        DU[i] = data[i];
+    }
+
+//    printf("DC: %d \n", DU[0]);
+
+//    printf("Block:\n");
+//    for (int my_i = 0; my_i < 64; ++my_i) {
+//        printf("%d ", DU[my_i]);
+//    }
+//    printf("\n");
+
+    // Encode DC
+//    int diff = DU[0] - DC;
+
+
+    std::vector<int> diffs;
+    std::vector<int> DUs;
+    for (int i = 0; i < DCs.size(); ++i) {
+        diffs.push_back(DU[i] - DCs[i]);
+        DUs.push_back(DU[i]);
+    }
+
+    for (int diff: diffs) {
+        if (diff == 0) {
+            jo_writeBits(fp, bitBuf, bitCnt, HTDC[0]);
+        } else {
+            unsigned short bits[2];
+            jo_calcBits(diff, bits);
+            jo_writeBits(fp, bitBuf, bitCnt, HTDC[bits[1]]);
+            jo_writeBits(fp, bitBuf, bitCnt, bits);
+        }
+    }
+    // Encode ACs
+    int end0pos = 63;
+    for (; (end0pos + 1 > diffs.size()) && (DU[end0pos] == 0); --end0pos) {
+    }
+    // TODO
+    // end0pos = first element in reverse order !=0
+    if (end0pos <= diffs.size() - 1) {
+        jo_writeBits(fp, bitBuf, bitCnt, EOB);
+        return DUs;
+    }
+    for (int i = diffs.size(); i <= end0pos; ++i) {
+        int startpos = i;
+        for (; DU[i] == 0 && i <= end0pos; ++i) {
+        }
+        int nrzeroes = i - startpos;
+        if (nrzeroes >= 16) {
+            int lng = nrzeroes >> 4;
+            for (int nrmarker = 1; nrmarker <= lng; ++nrmarker)
+                jo_writeBits(fp, bitBuf, bitCnt, M16zeroes);
+            nrzeroes &= 15;
+        }
+        unsigned short bits[2];
+        jo_calcBits(DU[i], bits);
+        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
+        jo_writeBits(fp, bitBuf, bitCnt, bits);
+    }
+    if (end0pos != 63) {
+        jo_writeBits(fp, bitBuf, bitCnt, EOB);
+    }
+    std::cout << ftell(fp) << '\n';
+    return DUs;
+}
+
 static int my_processDU(const std::vector<int> &data, FILE *fp, int &bitBuf, int &bitCnt, int DC, const unsigned short HTDC[256][2], const unsigned short HTAC[256][2]) {
     const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
     const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
@@ -200,13 +274,13 @@ static int my_processDU(const std::vector<int> &data, FILE *fp, int &bitBuf, int
         DU[i] = data[i];
     }
 
-    printf("DC: %d \n", DU[0]);
+//    printf("DC: %d \n", DU[0]);
 
-//    printf("Block:\n");
-//    for (int my_i = 0; my_i < 64; ++my_i) {
-//        printf("%d ", DU[my_i]);
-//    }
-//    printf("\n");
+    printf("Block:\n");
+    for (int my_i = 0; my_i < 64; ++my_i) {
+        printf("%d ", DU[my_i]);
+    }
+    printf("\n");
 
     // Encode DC
     int diff = DU[0] - DC;
@@ -247,6 +321,7 @@ static int my_processDU(const std::vector<int> &data, FILE *fp, int &bitBuf, int
     if (end0pos != 63) {
         jo_writeBits(fp, bitBuf, bitCnt, EOB);
     }
+//    std::cout << ftell(fp) << '\n';
     return DU[0];
 }
 

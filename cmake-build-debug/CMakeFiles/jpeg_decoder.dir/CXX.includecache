@@ -43,6 +43,8 @@ math.h
 -
 vector
 -
+iostream
+-
 
 F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h
 vector
@@ -56,6 +58,8 @@ fstream
 ../huffman/huf_main.h
 F:/repo/cpp/jpeg_compressor/huffman/huf_main.h
 iostream
+-
+string
 -
 
 F:/repo/cpp/jpeg_compressor/main.cpp

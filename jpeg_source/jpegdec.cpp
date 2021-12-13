@@ -224,18 +224,15 @@ void njDone(void);
 #include <string.h>
 #include <iostream>
 
-int main_retval_width = -1;
-int main_retval_heigth = -1;
-
 int decode_main(int argc, const char* argv[])
 {
     int size;
     char *buf;
     FILE *f;
 
-    if (argc < 2) 
+    if (argc < 3)
 	{
-        printf("Usage: %s <input.jpg> [<output.ppm>]\n", argv[0]);
+        printf("Usage: %s <input_file> <output_file> c|d\n", argv[0]);
         return 2;
     }
     f = fopen(argv[1], "rb");
@@ -251,30 +248,21 @@ int decode_main(int argc, const char* argv[])
     size = (int) fread(buf, 1, size, f);
     fclose(f);
 
-
-    std::ofstream output("./my_compressed.bin.jpeg", std::ios_base::binary);
-    if (!output.is_open()) {
-        std::cout << "Cannot open file for writing\n";
-        return 1;
+    string modeStr = string(argv[3]);
+    bool modeEncode = modeStr == "e";
+    if (!modeEncode && modeStr != "d") {
+        cout << "Undexpected mode arg: " << modeStr << endl;
+        return -1;
     }
 
     njInit();
-//    if (njDecode(buf, size)) {
-    if (myDecode(buf, size, "./my_compressed.bin.jpeg", true)) {
+    if (myDecode(buf, size, argv[2], modeEncode)) {
         free((void*)buf);
         printf("Error decoding the input file.\n");
         return 1;
     }
     free((void*)buf);
 
-    f = fopen((argc > 2) ? argv[2] : (njIsColor() ? "nanojpeg_out.ppm" : "nanojpeg_out.pgm"), "wb");
-    if (!f) {
-        printf("Error opening the output file.\n");
-        return 1;
-    }
-    fprintf(f, "P%d\n%d %d\n255\n", njIsColor() ? 6 : 5, njGetWidth(), njGetHeight());
-    fwrite(njGetImage(), 1, njGetImageSize(), f);
-    fclose(f);
     njDone();
     return 0;
 }
@@ -331,6 +319,12 @@ typedef struct _nj_code {
     unsigned char bits, code;
 } nj_vlc_code_t;
 
+//#ifndef DECODER
+//const int DC_CNT = 9;
+//#else
+const int DC_CNT = 1;
+//#endif
+
 typedef struct _nj_cmp {
     int cid;
     int ssx, ssy;
@@ -338,7 +332,7 @@ typedef struct _nj_cmp {
     int stride;
     int qtsel;
     int actabsel, dctabsel;
-    int dcpred;
+    int dcpred[DC_CNT];
     unsigned char *pixels;
 } nj_component_t;
 
@@ -699,47 +693,50 @@ static const unsigned char my_s_jo_ZigZag[] = { 0,1,5,6,14,15,27,28,2,4,7,13,16,
 NJ_INLINE void njDecodeBlock(nj_component_t* c, unsigned char* out, vector<int> &blockMatrix)
 {
     unsigned char code = 0;
-    int value, coef = 0;
+    int value, coef = DC_CNT - 1;
     njFillMem(nj.block, 0, sizeof(nj.block));
 
 //    my_dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
 //    printf("\n = %d = \n ", my_dcpred);
 
-    c->dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
-    int tmp = c->dcpred;
+    blockMatrix = vector<int>(64, 0);
+    for (int i = 0; i < DC_CNT; ++i) {
+        c->dcpred[i] += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
+        int tmp = c->dcpred[i];
+        blockMatrix[i] = tmp;
+        nj.block[0] = (c->dcpred[i]) * nj.qtab[c->qtsel][0];
+    }
 //    fprintf(stderr, "\n = %d = \n ", c->dcpred);
 
-    nj.block[0] = (c->dcpred) * nj.qtab[c->qtsel][0];
 
-    blockMatrix = vector<int>(64, 0);
+    if (blockMatrix[0] == -116 && blockMatrix[1] == 38 && blockMatrix[2] == -10 && blockMatrix[3] == -27 && blockMatrix[4] == 3) {
+        cout << "her";
+    }
 
-    blockMatrix[0] = tmp;
-
-    int bmIdx = 1;
+    int bmIdx = DC_CNT;
 
     do 
 	{
         value = njGetVLC(&nj.vlctab[c->actabsel][0], &code);
-//        printf("%d %d\n", value, (code >> 4));
+        if (!code) break;  // EOB
+        if (!(code & 0x0F) && (code != 0xF0)) njThrow(NJ_SYNTAX_ERROR);
+        coef += (code >> 4) + 1;
+
         for (int i = 0; i < (code >> 4); ++i) {
             blockMatrix[bmIdx++] = 0;
         }
         blockMatrix[bmIdx++] = value;
 
-        if (!code) break;  // EOB
-        if (!(code & 0x0F) && (code != 0xF0)) njThrow(NJ_SYNTAX_ERROR);
-        coef += (code >> 4) + 1;
         if (coef > 63) njThrow(NJ_SYNTAX_ERROR);
-        nj.block[(int) njZZ[coef]] = value * nj.qtab[c->qtsel][coef];
+        nj.block[(int) njZZ[coef]] = value * nj.qtab[c->qtsel][coef]; // TODO
     } 
 	while (coef < 63);
-//    printf("^vlc");
 
 //    printf("Block:\n");
 //    for (int my_i = 0; my_i < 64; ++my_i) {
-//        printf("%d ", (signed char) blockMatrix[my_i]);
+//        cout << blockMatrix[my_i] << ' ';
 //    }
-//    printf("\n");
+//    cout << endl;
 
 	for (coef = 0; coef < 64; coef += 8)
 	{
@@ -762,6 +759,75 @@ NJ_INLINE void njDecodeBlock(nj_component_t* c, unsigned char* out, vector<int> 
 //    }
 //    printf("\n");
 }
+
+
+//NJ_INLINE void njDecodeBlock_Old(nj_component_t* c, unsigned char* out, vector<int> &blockMatrix)
+//{
+//    unsigned char code = 0;
+//    int value, coef = 0;
+//    njFillMem(nj.block, 0, sizeof(nj.block));
+//
+//
+////    my_dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
+////    printf("\n = %d = \n ", my_dcpred);
+//
+//    c->dcpred += njGetVLC(&nj.vlctab[c->dctabsel][0], NULL);
+//    int tmp = c->dcpred;
+////    fprintf(stderr, "\n = %d = \n ", c->dcpred);
+//
+//    nj.block[0] = (c->dcpred) * nj.qtab[c->qtsel][0];
+//
+//    blockMatrix = vector<int>(64, 0);
+//
+//    blockMatrix[0] = tmp;
+//
+//    int bmIdx = 1;
+//
+//    do
+//    {
+//        value = njGetVLC(&nj.vlctab[c->actabsel][0], &code);
+////        printf("%d %d\n", value, (code >> 4));
+//        for (int i = 0; i < (code >> 4); ++i) {
+//            blockMatrix[bmIdx++] = 0;
+//        }
+//        blockMatrix[bmIdx++] = value;
+//
+//        if (!code) break;  // EOB
+//        if (!(code & 0x0F) && (code != 0xF0)) njThrow(NJ_SYNTAX_ERROR);
+//        coef += (code >> 4) + 1;
+//        if (coef > 63) njThrow(NJ_SYNTAX_ERROR);
+//        nj.block[(int) njZZ[coef]] = value * nj.qtab[c->qtsel][coef];
+//    }
+//    while (coef < 63);
+////    printf("^vlc");
+//
+////    printf("Block:\n");
+////    for (int my_i = 0; my_i < 64; ++my_i) {
+////        printf("%d ", (signed char) blockMatrix[my_i]);
+////    }
+////    printf("\n");
+//
+//    for (coef = 0; coef < 64; coef += 8)
+//    {
+//        njRowIDCT(&nj.block[coef]);
+//    }
+//    for (coef = 0; coef < 8; ++coef)
+//    {
+//        njColIDCT(&nj.block[coef], &out[coef], c->stride);
+//    }
+//    // Cr / Cb
+//
+//
+////    printf("After:\n");
+////    for (int my_i = 0; my_i < 64; ++my_i) {
+//////        printf("%hhx ",  (char) nj.block[njZZ[my_i]]);
+////        printf("%d ", nj.block[njZZ[my_i]]);
+////        if (my_coef % 8 == 7) {
+////            printf("\n");
+////        }
+////    }
+////    printf("\n");
+//}
 
 NJ_INLINE void njDecodeScanEncoder(vector<unsigned char> &target) {
     const unsigned char *decode_scan_start = nj.pos;
@@ -822,7 +888,8 @@ NJ_INLINE void njDecodeScanEncoder(vector<unsigned char> &target) {
             nextrst = (nextrst + 1) & 7;
             rstcount = nj.rstinterval;
             for (i = 0;  i < 3;  ++i)
-                nj.comp[i].dcpred = 0;
+                for (int j = 0; j < DC_CNT; ++j)
+                    nj.comp[i].dcpred[j] = 0;
         }
     }
     nj.error = __NJ_FINISHED;
@@ -884,7 +951,8 @@ NJ_INLINE void njDecodeScanDecoder(vector<unsigned char> &target, vector<vector<
             nextrst = (nextrst + 1) & 7;
             rstcount = nj.rstinterval;
             for (i = 0;  i < 3;  ++i)
-                nj.comp[i].dcpred = 0;
+                for (int j = 0; j < DC_CNT; ++j)
+                    nj.comp[i].dcpred[j] = 0;
         }
     }
     nj.error = __NJ_FINISHED;
@@ -1091,11 +1159,7 @@ const unsigned short UVAC_HT[256][2] = {
 
 nj_result_t myDecode(const void* jpeg, const int size, const string &output_file, bool modeEncode) {
     vector<unsigned char> target;
-
-//    vector<unsigned char> jpeg_data;
-//    for (int i = 0; i < size; ++i) {
-//        jpeg_data.push_back(((unsigned char *)jpeg)[i]);
-//    }
+    cout << "DC_COUNT = " << DC_CNT << endl;
 
     njDone();
     nj.pos = (const unsigned char*) jpeg;
@@ -1125,12 +1189,50 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
 
                 printf("HEADER_LEN: %u, last two bytes: %x %x\n", target.size(), target[target.size() - 2], target.back());
 
-//                if (modeEncode) { // nj.pos -> after_scan
-                if (false) { // nj.pos -> after_scan
-                    njDecodeScanEncoder(target);
+                if (modeEncode) { // nj.pos -> after_scan
+                    vector<vector<int>> blocks;
+
+                    njDecodeScanDecoder(target, blocks);
+
+                    cout << "HEADER_SIZE: " << target.size() << "\n";
+                    cout << "Total " << blocks.size() << " blocks\n";
+
+                    FILE *fp = fopen(output_file.c_str(), "wb");
+                    if (!fp) {
+                        printf("FILE ERROR\n");
+                        return NJ_UNSUPPORTED;
+                    }
+                    printf("Decoder: header size = %d", target.size());
+                    for (unsigned char c: target) {
+                        putc(c, fp);
+                    }
+
+                    vector<int> DCYs, DCVs, DCUs;
+                    for (int i = 0; i < 9; ++i) {
+                        DCYs.push_back(0);
+                        DCVs.push_back(0);
+                        DCUs.push_back(0);
+                    }
+                    int bitBuf = 0, bitCnt = 0;
+
+                    for (int i = 0; i < blocks.size(); i += 6) {
+                        printf("Blocks %d-%d:\n", i, i + 5);
+                        DCYs = my_processDU_Better(blocks[i], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
+                        DCYs = my_processDU_Better(blocks[i + 1], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
+                        DCYs = my_processDU_Better(blocks[i + 2], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
+                        DCYs = my_processDU_Better(blocks[i + 3], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
+
+                        DCUs = my_processDU_Better(blocks[i + 4], fp, bitBuf, bitCnt, DCUs, UVDC_HT, UVAC_HT);
+                        DCVs = my_processDU_Better(blocks[i + 5], fp, bitBuf, bitCnt, DCVs, UVDC_HT, UVAC_HT);
+                    }
 
 
+                    static const unsigned short fillBits[] = { 0x7F, 7 };
+                    jo_writeBits(fp, bitBuf, bitCnt, fillBits);
+                    putc(0xFF, fp);
+                    putc(0xD9, fp);
 
+                    fclose(fp);
                 } else {
                     vector<vector<int>> blocks;
 
@@ -1142,14 +1244,20 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
                     njDecodeScanDecoder(target, blocks);
 
                     cout << "HEADER_SIZE: " << target.size() << "\n";
-
-                    cout << blocks.size() << "\n";
-                    cout << "BLOCKS_SIZE: " << myCompress(blocks).size();
-
-                    return NJ_UNSUPPORTED;
+                    int headerSize = target.size();
+                    cout << "Total " << blocks.size() << " blocks\n";
 
 
-                    FILE *fp = fopen("./from_compressed.jpeg", "wb");
+                    cerr << "HERE2";
+//                    int blocksSize = myCompress(blocks).size();
+//                    cout << "BLOCKS_SIZE: " << blocksSize << "\n";
+
+//                    cout << "Total size: " << blocksSize + headerSize << "\n";
+
+//                    return NJ_UNSUPPORTED;
+
+
+                    FILE *fp = fopen("./from_bin_real.jpeg", "wb");
                     if (!fp) {
                         printf("FILE ERROR\n");
                         return NJ_UNSUPPORTED;
@@ -1172,6 +1280,8 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
                         DCU = my_processDU(blocks[i + 4], fp, bitBuf, bitCnt, DCU, UVDC_HT, UVAC_HT);
                         DCV = my_processDU(blocks[i + 5], fp, bitBuf, bitCnt, DCV, UVDC_HT, UVAC_HT);
                     }
+
+
                     static const unsigned short fillBits[] = { 0x7F, 7 };
                     jo_writeBits(fp, bitBuf, bitCnt, fillBits);
                     putc(0xFF, fp);

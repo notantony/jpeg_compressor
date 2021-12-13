@@ -1,4 +1,8 @@
 "C:\Program Files\JetBrains\CLion 2021.2.3\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - NMake Makefiles" F:\repo\cpp\jpeg_compressor
--- Configuring done
--- Generating done
--- Build files have been written to: F:/repo/cpp/jpeg_compressor/cmake-build-debug
+CMake Error at CMakeLists.txt:15 (target_link_libraries):
+  Cannot specify link libraries for target "jpeg_compressor" which is not
+  built by this project.
+
+
+-- Configuring incomplete, errors occurred!
+See also "F:/repo/cpp/jpeg_compressor/cmake-build-debug/CMakeFiles/CMakeOutput.log".

@@ -13,16 +13,18 @@ void writeToFile(const vector<int> &v, const string &filename) {
     }
 
     for (int val: v) {
-        val += 128;
+        val += 126;
         if (val >= 0 && val < UCHAR_MAX) {
             file << (unsigned char) val;
         } else {
-            val += 32000;
-            if (!(val >= 0 && val <= USHRT_MAX)) {
-                cerr << val;
-                throw runtime_error("Unexpected value\n");
-            }
-            file << 255U << (unsigned short) val;
+            cerr << val << '\n';
+
+//            val += 127;
+//            if (!(val >= 0 && val <= UCHAR_MAX + 255)) {
+//                cerr << val;
+//                throw runtime_error("Unexpected value\n");
+//            }
+//            file << (unsigned char) 255 << (unsigned char) 255 << (unsigned char) val - 255;
         }
     }
 }
@@ -67,84 +69,175 @@ int getPrevBlock(int i) {
     return i - 1;
 }
 
-vector<unsigned char> myCompress(const vector<vector<int>> &blocks) {
-    vector<int> DCs;
+int ZERO_SEQ_MARKER = 256;
+int ZERO_SEQ2_MARKER = 257;
+
+vector<int> foldZeros(const vector<int> &data, int blockSize = -1) {
+    vector<int> result;
+//    if (blockSize != -1 && data.size() % blockSize != 0) {
+//        throw exception("Data do not divide on block size");
+//    }
+    for (int i = 0; i < data.size(); ++i) {
+        if (i + 2 < data.size() && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0) {
+            int seqLen = 0;
+            while (i < data.size() && data[i] == 0) {
+                ++seqLen;
+                ++i;
+            }
+            --i;
+            if (seqLen < 255) {
+                result.push_back(ZERO_SEQ_MARKER);
+                result.push_back(seqLen);
+            } else if (seqLen >= 255) {
+                result.push_back(ZERO_SEQ2_MARKER);
+                result.push_back(seqLen - 255);
+            }
+//            cerr << "ZeroSeqLen";
+//            throw exception("zeroSeqLen");
+        } else {
+            result.push_back(data[i]);
+        }
+    }
+    return result;
+}
+
+int MARKERS[2] {ZERO_SEQ_MARKER, ZERO_SEQ2_MARKER};
+
+
+
+
+int DC_SPECIAL_CNT = 1;
+int DC_DIFF_CNT = 1;
+
+vector<int> zerosSeq;
+
+vector<unsigned char> codeChannel(vector<vector<int>> &blocks) {
+    vector<int> DCVector;
+    vector<int> ACVector;
+
+    for (int i = 0; i < blocks.size(); ++i) {
+        vector<int> &block = blocks[i];
+        for (int DCIndex = 0; DCIndex < DC_SPECIAL_CNT; ++DCIndex) {
+            int prevDC;
+            if (DCIndex == 0) {
+                prevDC = 0;
+            } else {
+                prevDC = blocks[DCIndex][DCIndex];
+            }
+            DCVector.push_back(block[DCIndex] - prevDC);
+//            if (DCIndex < DC_DIFF_CNT) {
+//            } else {
+//                DCVector[DCIndex].push_back(block[DCIndex]);
+//            }
+//        }
+        }
+    }
+    return vector<unsigned char >();
+}
+
+extern vector<unsigned char> myCompress(vector<vector<int>> &blocks) {
+
+//    cout << "Mapping values\n";
+//    for (auto &block: blocks) {
+//        for (auto &val: block) {
+//            for (int marker: MARKERS) {
+//                if (val == marker * 10) {
+//                    throw exception("256 * 10");
+//                }
+//                if (val == marker) {
+//                    val *= 10;
+//                }
+//            }
+//        }
+//    }
+
+
+    cout << "Group blocks by channel\n";
+    vector<vector<int>> CrBlocks;
+    vector<vector<int>> CbBlocks;
+    vector<vector<int>> YBlocks;
+    for (int blockI = 0; blockI < blocks.size(); ++blockI) {
+        if (blockI % 6 == 4) {
+            CrBlocks.push_back(blocks[blockI]);
+        } else if (blockI % 6 == 5) {
+            CbBlocks.push_back(blocks[blockI]);
+        } else {
+            YBlocks.push_back(blocks[blockI]);
+        }
+    }
+
+
     vector<int> ACs;
+    int DCCount = 3;
+    vector<vector<int>> DCVectors(DCCount);
 
-    vector<int> DC1s;
-    vector<int> DC2s;
-
-
-    int prevDC, prevDC1, prevDC2;
     int blockIndex = 0;
     for (const auto &block: blocks) {
-        if (blockIndex == 0 || blockIndex == 4 || blockIndex == 5) {
-            prevDC = 0;
-        } else {
-            prevDC = blocks[getPrevBlock(blockIndex)][0];
-        }
-        DCs.push_back(block[0] - prevDC);
-
-        if (blockIndex == 0 || blockIndex == 4 || blockIndex == 5) {
-            prevDC1 = 0;
-        } else {
-            prevDC1 = blocks[getPrevBlock(blockIndex)][1];
-        }
-        DC1s.push_back(block[1] - prevDC1);
-
-        if (blockIndex == 0 || blockIndex == 4 || blockIndex == 5) {
-            prevDC2 = 0;
-        } else {
-            prevDC2 = blocks[getPrevBlock(blockIndex)][2];
-        }
-        DC2s.push_back(block[2] - prevDC2);
-
-        int lastNonzeroI;
-        for (lastNonzeroI = block.size() - 1; lastNonzeroI > 1; --lastNonzeroI) {
-            if (block[lastNonzeroI] != 0) {
-                break;
+        for (int DCIndex = 0; DCIndex < DCCount; ++DCIndex) {
+            int prevDC;
+            if (blockIndex == 0 || blockIndex == 4 || blockIndex == 5) {
+                prevDC = 0;
+            } else {
+                prevDC = blocks[getPrevBlock(blockIndex)][DCIndex];
+            }
+            if (DCIndex < 3) {
+                DCVectors[DCIndex].push_back(block[DCIndex] - prevDC);
+            } else {
+                DCVectors[DCIndex].push_back(block[DCIndex]);
             }
         }
-        for (int i = 1; i <= lastNonzeroI; ++i) {
+//        cerr << "Out\n";
+//        cerr << "In -";
+        for (int i = DCCount; i < block.size(); ++i) {
             ACs.push_back(block[i]);
         }
+//        cerr << "Out\n";
         ++blockIndex;
-    }
-    for (int i = 0; i < 100; ++i) {
-        cerr << DCs[i] << ' ';
-    }
-    cerr << '\n';
-    for (int i = 0; i < 100; ++i) {
-        cerr << DC1s[i] << ' ';
-    }
-    cerr << '\n';
-    for (int i = 0; i < 100; ++i) {
-        cerr << DC2s[i] << ' ';
-    }
-    cerr << '\n';
 
-    string DCTmp = "./tempFileDC.bin.tmp";
-    string DC1Tmp = "./tempFileDC1.bin.tmp";
-    string DC2Tmp = "./tempFileDC2.bin.tmp";
+//        int lastNonzeroI;
+//        for (lastNonzeroI = block.size() - 1; lastNonzeroI > DCCount; --lastNonzeroI) {
+//            if (block[lastNonzeroI] != 0) {
+//                break;
+//            }
+//        }
+//
+//        for (int i = DCCount; i <= lastNonzeroI; ++i) {
+
+    }
+
+    for (int i = 0; i < DCCount; ++i) {
+        DCVectors[i] = foldZeros(DCVectors[i]);
+
+        cerr << "DC_cf_" << i << ":\n";
+        for (int j = 0; j < 100; ++j) {
+            cerr << DCVectors[i][j] << ' ';
+        }
+        cerr << '\n';
+    }
+
+    vector<unsigned char> result;
+    for (int i = 0; i < DCCount; ++i) {
+        string DCITmpFilename = "./tempFileDC";
+        DCITmpFilename += to_string(i) + ".bin.tmp";
+
+        writeToFile(DCVectors[i], DCITmpFilename);
+
+        for (unsigned char c: getCompressedBytes(DCITmpFilename)) {
+            result.push_back(c);
+        }
+    }
+
+
+    cerr << "In3 - ";
+    ACs = foldZeros(ACs);
+    cerr << "Out\n";
+
     string ACTmp = "./tempFileAC.bin.tmp";
-
-    writeToFile(DCs, DCTmp);
-    writeToFile(DC1s, DC1Tmp);
-    writeToFile(DC2s, DC2Tmp);
-
     writeToFile(ACs, ACTmp);
-
-    vector<unsigned char> a = getCompressedBytes(DCTmp);
     for (unsigned char c: getCompressedBytes(ACTmp)) {
-        a.push_back(c);
+        result.push_back(c);
     }
-//    for (unsigned char c: getCompressedBytes(DC1Tmp)) {
-//        a.push_back(c);
-//    }
-//    for (unsigned char c: getCompressedBytes(DC2Tmp)) {
-//        a.push_back(c);
-//    }
-    return a;
+    return result;
 }
 
 

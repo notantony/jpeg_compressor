@@ -9,6 +9,7 @@
 #include <fstream>
 #include "../huffman/huf_main.h"
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -17,6 +18,6 @@ class my_compress {
 };
 
 
-extern vector<unsigned char> myCompress(const vector<vector<int>> &blocks);
+extern vector<unsigned char> myCompress(vector<vector<int>> &blocks);
 
 #endif //JPEG_COMPRESSOR_MY_COMPRESS_H

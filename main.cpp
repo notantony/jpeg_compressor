@@ -9,28 +9,17 @@ using namespace std;
 
 
 void encode(const string &input_file, const string &output_file) {
-    // "Usage: %s <input.jpg> [<output.ppm>]\n", argv[0]
-
     const char *args[] = {
             "<this_program.exe>",
             input_file.c_str(),
             output_file.c_str(),
+            "e",
     };
-    decode_main(3, args);
 
-//    decode_main()
-//
-//
-//    std::ifstream input(input_file, std::ios_base::binary);
-//    if (!input.is_open()) {
-//        std::cout << "Cannot open file for reading\n";
-//        return 1;
-//    }
-//    std::ofstream output(output_file, std::ios_base::binary);
-//    if (!output.is_open()) {
-//        std::cout << "Cannot open file for writing\n";
-//        return 1;
-//    }
+    if (decode_main(4, args)) {
+        cout << "Something went wrong!!!\n";
+    }
+
 }
 
 void decode(const string &input_file, const string &output_file) {
@@ -98,7 +87,7 @@ int main(int n, char* args[]) {
             encode(input_file, output_file);
         }
 
-        std::cout << "Done successfully, elapsed time: "
+        std::cout << "Elapsed time: "
                 << (static_cast<double>(clock()) - start_time) / static_cast<double>(CLOCKS_PER_SEC)
                 << " seconds\n";
 

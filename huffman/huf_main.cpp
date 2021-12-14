@@ -64,6 +64,44 @@ bitreader my_readv(std::ifstream &input) {
 	return bitreader(first, tmp);
 }
 
+extern std::vector<std::pair<unsigned short, unsigned short>> getCodes(std::istream &input) {
+    std::vector<uint64_t> cnt(256 + 255, 0);
+    cnt.shrink_to_fit();
+    while (input.good()) {
+        input.read(reinterpret_cast<char*>(buffer), sizeof(buffer));
+        for (int i = 0; i < input.gcount(); i++) {
+            cnt[buffer[i]]++;
+        }
+    }
+    if (input.bad()) {
+        throw std::runtime_error("Error while reading input file");
+    }
+    compressor compressor(cnt);
+
+
+//    my_writev(output, compressor.get_leaves_code());
+    bitvector bv;
+    bv.push(compressor.get_tree_code());
+//    my_writev(output, bv.release());
+    bv.clear();
+
+    input.clear();
+    input.seekg(0, input.beg);
+    std::vector<unsigned char> tmp;
+//    test(input);
+    std::vector<std::pair<unsigned short, unsigned short>> result;
+    for (int c = 0; c <= UCHAR_MAX; ++c) {
+        std::vector<unsigned char> code = compressor.get_code((unsigned char)c);
+        short unsigned codeVal = 0;
+        for (int i = 0; i < code.size(); ++i) {
+            codeVal *= 2;
+            codeVal += code[i];
+        }
+        result.push_back(std::make_pair(codeVal, (short unsigned)code.size()));
+    }
+    return result;
+}
+
 
 extern void compress(std::ifstream &input, std::ofstream &output) {
 	std::vector<uint64_t> cnt(256 + 255, 0);

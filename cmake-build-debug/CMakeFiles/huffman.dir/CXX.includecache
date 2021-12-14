@@ -6,21 +6,11 @@
 
 #IncludeRegexTransform: 
 
-F:/repo/cpp/jpeg_compressor/huffman/bitvector.cpp
-bitvector.h
-F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
-stdexcept
--
-
 F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
 vector
 -
 cstddef
 -
-
-F:/repo/cpp/jpeg_compressor/huffman/compressor.cpp
-compressor.h
-F:/repo/cpp/jpeg_compressor/huffman/compressor.h
 
 F:/repo/cpp/jpeg_compressor/huffman/compressor.h
 fstream
@@ -39,4 +29,24 @@ list
 -
 bitvector.h
 F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
+
+F:/repo/cpp/jpeg_compressor/huffman/huf_main.cpp
+fstream
+-
+iostream
+-
+cstring
+-
+algorithm
+-
+bitvector.h
+F:/repo/cpp/jpeg_compressor/huffman/bitvector.h
+compressor.h
+F:/repo/cpp/jpeg_compressor/huffman/compressor.h
+stdexcept
+-
+ctime
+-
+iomanip
+-
 

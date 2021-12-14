@@ -288,7 +288,10 @@ int decode_main(int argc, const char* argv[])
 #if NJ_USE_LIBC
     #include <stdlib.h>
     #include <string.h>
-    #define njAllocMem malloc
+#include <iomanip>
+#include <algorithm>
+
+#define njAllocMem malloc
     #define njFreeMem  free
     #define njFillMem  memset
     #define njCopyMem  memcpy
@@ -1118,9 +1121,9 @@ void njDone(void) {
     njInit();
 }
 
-const unsigned short YDC_HT[256][2] = { {0,2},{2,3},{3,3},{4,3},{5,3},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9} };
-const unsigned short UVDC_HT[256][2] = { {0,2},{1,2},{2,2},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9},{1022,10},{2046,11} };
-const unsigned short YAC_HT[256][2] = {
+unsigned short YDC_HT[256][2] = { {0,2},{2,3},{3,3},{4,3},{5,3},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9} };
+unsigned short UVDC_HT[256][2] = { {0,2},{1,2},{2,2},{6,3},{14,4},{30,5},{62,6},{126,7},{254,8},{510,9},{1022,10},{2046,11} };
+unsigned short YAC_HT[256][2] = {
         {10,4},{0,2},{1,2},{4,3},{11,4},{26,5},{120,7},{248,8},{1014,10},{65410,16},{65411,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
         {12,4},{27,5},{121,7},{502,9},{2038,11},{65412,16},{65413,16},{65414,16},{65415,16},{65416,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
         {28,5},{249,8},{1015,10},{4084,12},{65417,16},{65418,16},{65419,16},{65420,16},{65421,16},{65422,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
@@ -1138,7 +1141,7 @@ const unsigned short YAC_HT[256][2] = {
         {65515,16},{65516,16},{65517,16},{65518,16},{65519,16},{65520,16},{65521,16},{65522,16},{65523,16},{65524,16},{0,0},{0,0},{0,0},{0,0},{0,0},
         {2041,11},{65525,16},{65526,16},{65527,16},{65528,16},{65529,16},{65530,16},{65531,16},{65532,16},{65533,16},{65534,16},{0,0},{0,0},{0,0},{0,0},{0,0}
 };
-const unsigned short UVAC_HT[256][2] = {
+ unsigned short UVAC_HT[256][2] = {
         {0,2},{1,2},{4,3},{10,4},{24,5},{25,5},{56,6},{120,7},{500,9},{1014,10},{4084,12},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
         {11,4},{57,6},{246,8},{501,9},{2038,11},{4085,12},{65416,16},{65417,16},{65418,16},{65419,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
         {26,5},{247,8},{1015,10},{4086,12},{32706,15},{65420,16},{65421,16},{65422,16},{65423,16},{65424,16},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
@@ -1157,9 +1160,135 @@ const unsigned short UVAC_HT[256][2] = {
         {1018,10},{32707,15},{65526,16},{65527,16},{65528,16},{65529,16},{65530,16},{65531,16},{65532,16},{65533,16},{65534,16},{0,0},{0,0},{0,0},{0,0},{0,0}
 };
 
+struct Cmp {
+    const vector<vector<int>> &data;
+    int sortIndex;
+
+    Cmp(const vector<vector<int>> &data, int sortIndex) : data(data), sortIndex(sortIndex) {}
+
+    bool operator() (int i, int j) {
+        if (data[i][sortIndex] < data[j][sortIndex]) {
+            return true;
+        } else if (data[i][sortIndex] == data[j][sortIndex]) {
+            return i < j;
+        }
+        return false;
+    }
+};
+
+
+vector<int> getStats(const vector<vector<int>> &blocks) {
+    vector<int> results;
+    for (int mod = 0; mod < 6; ++mod) {
+        vector<int> stats(65, 0);
+        for (int i = mod; i < blocks.size(); i += 6) {
+            for (int j = 0; j < 64; j++) {
+                if (blocks[i][j] == 0) {
+                    ++stats[j];
+                    break;
+                }
+            }
+        }
+        int mx = 0, mxi;
+        for (int j = 0; j < 65; ++j) {
+            if (stats[j] > mx) {
+                mx = stats[j];
+                mxi = j;
+            }
+        }
+        results.push_back(max(mxi, 6));
+
+//        double s = 0;
+//        for (int j = 0; j < 65; ++j) {
+//            s += ((double) j) * stats[j];
+//        }
+//        s /= (blocks.size() / 6.0);
+//        results.push_back(floor(s - 1.0));
+    }
+    return results;
+}
+
+vector<vector<int>> getDeepAnalysis(const vector<vector<int>> &blocks) {
+    vector<vector<int>> results;
+    for (int mod = 0; mod < 6; ++mod) {
+        int mn = 1e9;
+        vector<int> mnI;
+        for (int usebitEob = 0; usebitEob <= 1; ++usebitEob) {
+            for (int testK = 0; testK <= 16; ++testK) {
+                FILE *tmp = tmpfile();
+                int bitBuf = 0, bitCnt = 0;
+
+                for (int i = 0; i < blocks.size(); i += 6) {
+                    if (mod < 4) {
+                        my_processDU_Triangle(blocks[i + mod], testK, tmp, bitBuf, bitCnt, YDC_HT, YAC_HT, usebitEob);
+                    } else {
+                        my_processDU_Triangle(blocks[i + mod], testK, tmp, bitBuf, bitCnt, UVDC_HT, UVAC_HT, usebitEob);
+                    }
+                }
+                static const unsigned short fillBits[] = { 0x7F, 7 };
+                jo_writeBits(tmp, bitBuf, bitCnt, fillBits);
+
+                fflush(tmp);
+                int bytesTotal = ftell(tmp);
+                if (bytesTotal < mn) {
+                    mn = bytesTotal;
+                    mnI = {testK, usebitEob};
+                }
+                fclose(tmp);
+            }
+        }
+
+        results.push_back(mnI);
+    }
+    return results;
+}
+
+
+vector<vector<int>> applyDiff(const vector<vector<int>> &blocks, int nDC = 1) {
+    vector<vector<int>> result = blocks;
+    for (int dcI = 0; dcI < nDC; ++dcI) {
+        int DCY = 0, DCU = 0, DCV = 0;
+        for (int i = 0; i < blocks.size(); ++i) {
+            int *DCPrev;
+            if (i % 6 == 0 || i % 6 == 1 || i % 6 == 2 || i % 6 == 3) {
+                DCPrev = &DCY;
+            } else if (i % 6 == 4) {
+                DCPrev = &DCU;
+            } else {
+                DCPrev = &DCV;
+            }
+
+            result[i][dcI] -= *DCPrev;
+            *DCPrev = blocks[i][dcI];
+        }
+    }
+    return result;
+}
+
+vector<vector<int>> mySorting(const vector<vector<int>> &blocks) {
+    vector<int> ind;
+    vector<vector<int>> result(blocks.size(), vector<int>(64, 0));
+
+    for (int i = 0; i < blocks.size(); ++i) {
+        ind.push_back(i);
+    }
+
+    for (int i = 0; i < blocks.size(); ++i) {
+        result[i][0] = blocks[i][0];
+    }
+    for (int i = 0; i < 63; ++i) {
+        std::sort(ind.begin(), ind.end(), Cmp(blocks, i));
+        for (int j = 0; j < blocks.size(); ++j) {
+            result[j][i + 1] = blocks[ind[j]][i + 1];
+        }
+    }
+    return result;
+}
+
 nj_result_t myDecode(const void* jpeg, const int size, const string &output_file, bool modeEncode) {
     vector<unsigned char> target;
     cout << "DC_COUNT = " << DC_CNT << endl;
+    int origSize = size;
 
     njDone();
     nj.pos = (const unsigned char*) jpeg;
@@ -1202,28 +1331,84 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
                         printf("FILE ERROR\n");
                         return NJ_UNSUPPORTED;
                     }
-                    printf("Decoder: header size = %d", target.size());
+                    printf("Decoder: header size = %d\n", target.size());
                     for (unsigned char c: target) {
                         putc(c, fp);
                     }
 
-                    vector<int> DCYs, DCVs, DCUs;
-                    for (int i = 0; i < 9; ++i) {
-                        DCYs.push_back(0);
-                        DCVs.push_back(0);
-                        DCUs.push_back(0);
+//                    blocks = mySorting(blocks);
+                    blocks = applyDiff(blocks, 1);
+                    vector<vector<int>> stats = getDeepAnalysis(blocks);
+                    for (int i = 0; i < stats.size(); ++i) {
+                        for (int j = 0; j < stats[i].size(); ++j) {
+                            cout << stats[i][j] << " ";
+                        }
+                        cout << "| ";
                     }
+                    cout << endl;
+
+//                    string dcTmpFN = "./dc_data.tmp";
+//                    string acTmpFN = "./ac_data.tmp";
+//                    string dcuTmpFN = "./dcu_data.tmp";
+//                    string acuTmpFN = "./acu_data.tmp";
+//                    ofstream dcTmp(dcTmpFN, ios_base::binary);
+//                    ofstream acTmp(acTmpFN, ios_base::binary);
+//                    ofstream dcuTmp(dcuTmpFN, ios_base::binary);
+//                    ofstream acuTmp(acuTmpFN, ios_base::binary);
+//
+//                    for (int i = 0; i < blocks.size(); i += 6) {
+//                        my_processDU_Analyse(blocks[i], acTmp, dcTmp);
+//                        my_processDU_Analyse(blocks[i + 1], acTmp, dcTmp);
+//                        my_processDU_Analyse(blocks[i + 2], acTmp, dcTmp);
+//                        my_processDU_Analyse(blocks[i + 3], acTmp, dcTmp);
+//
+//                        my_processDU_Analyse(blocks[i + 4], acuTmp, dcuTmp);
+//                        my_processDU_Analyse(blocks[i + 5], acuTmp, dcuTmp);
+//                    }
+//                    dcTmp.close();
+//                    acTmp.close();
+//                    dcuTmp.close();
+//                    acuTmp.close();
+//
+//                    ifstream acTmpI(acTmpFN, ios_base::binary);
+//                    ifstream dcTmpI(dcTmpFN, ios_base::binary);
+//                    ifstream acuTmpI(acuTmpFN, ios_base::binary);
+//                    ifstream dcuTmpI(dcuTmpFN, ios_base::binary);
+//                    vector<pair<unsigned short, unsigned short>> acCodes = getCodes(acTmpI);
+//                    vector<pair<unsigned short, unsigned short>> dcCodes = getCodes(dcTmpI);
+//                    vector<pair<unsigned short, unsigned short>> acuCodes = getCodes(acuTmpI);
+//                    vector<pair<unsigned short, unsigned short>> dcuCodes = getCodes(dcuTmpI);
+//                    for (int i = 0; i < 256; ++i) {
+//                        YAC_HT[i][0] = acCodes[i].first;
+//                        YAC_HT[i][1] = acCodes[i].second;
+//                        YDC_HT[i][0] = dcCodes[i].first;
+//                        YDC_HT[i][1] = dcCodes[i].second;
+//                        UVAC_HT[i][0] = acuCodes[i].first;
+//                        UVAC_HT[i][1] = acuCodes[i].second;
+//                        UVDC_HT[i][0] = dcuCodes[i].first;
+//                        UVDC_HT[i][1] = dcuCodes[i].second;
+//                    }
+
+
                     int bitBuf = 0, bitCnt = 0;
 
                     for (int i = 0; i < blocks.size(); i += 6) {
-                        printf("Blocks %d-%d:\n", i, i + 5);
-                        DCYs = my_processDU_Better(blocks[i], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
-                        DCYs = my_processDU_Better(blocks[i + 1], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
-                        DCYs = my_processDU_Better(blocks[i + 2], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
-                        DCYs = my_processDU_Better(blocks[i + 3], fp, bitBuf, bitCnt, DCYs, YDC_HT, YAC_HT);
+//                        printf("Blocks %d-%d:\n", i, i + 5);
 
-                        DCUs = my_processDU_Better(blocks[i + 4], fp, bitBuf, bitCnt, DCUs, UVDC_HT, UVAC_HT);
-                        DCVs = my_processDU_Better(blocks[i + 5], fp, bitBuf, bitCnt, DCVs, UVDC_HT, UVAC_HT);
+                        my_processDU_Triangle(blocks[i], stats[0][0], fp, bitBuf, bitCnt, YDC_HT, YAC_HT, stats[0][1]);
+                        my_processDU_Triangle(blocks[i + 1], stats[1][0], fp, bitBuf, bitCnt, YDC_HT, YAC_HT, stats[1][1]);
+                        my_processDU_Triangle(blocks[i + 2], stats[2][0], fp, bitBuf, bitCnt, YDC_HT, YAC_HT, stats[2][1]);
+                        my_processDU_Triangle(blocks[i + 3], stats[3][0], fp, bitBuf, bitCnt, YDC_HT, YAC_HT, stats[3][1]);
+
+                        my_processDU_Triangle(blocks[i + 4], stats[4][0], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT, stats[4][1]);
+                        my_processDU_Triangle(blocks[i + 5], stats[5][0], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT, stats[5][1]);
+//                        my_processDU(blocks[i], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+//                        my_processDU(blocks[i + 1], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+//                        my_processDU(blocks[i + 2], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+//                        my_processDU(blocks[i + 3], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+//
+//                        my_processDU(blocks[i + 4], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT);
+//                        my_processDU(blocks[i + 5], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT);
                     }
 
 
@@ -1232,30 +1417,18 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
                     putc(0xFF, fp);
                     putc(0xD9, fp);
 
+                    std::cout << ftell(fp) << " / " << size << " bytes total\n";
+                    std::cout << setprecision(3);
+                    std::cout << ((float)size - ftell(fp)) / size << " compression ratio\n";
                     fclose(fp);
                 } else {
                     vector<vector<int>> blocks;
-
-//                    for (unsigned char c: target) {
-//                        output_file << c;
-//                    }
-
 
                     njDecodeScanDecoder(target, blocks);
 
                     cout << "HEADER_SIZE: " << target.size() << "\n";
                     int headerSize = target.size();
                     cout << "Total " << blocks.size() << " blocks\n";
-
-
-                    cerr << "HERE2";
-//                    int blocksSize = myCompress(blocks).size();
-//                    cout << "BLOCKS_SIZE: " << blocksSize << "\n";
-
-//                    cout << "Total size: " << blocksSize + headerSize << "\n";
-
-//                    return NJ_UNSUPPORTED;
-
 
                     FILE *fp = fopen("./from_bin_real.jpeg", "wb");
                     if (!fp) {
@@ -1267,18 +1440,18 @@ nj_result_t myDecode(const void* jpeg, const int size, const string &output_file
                         putc(c, fp);
                     }
 
-                    int DCY = 0, DCU = 0, DCV = 0;
+                    blocks = applyDiff(blocks);
                     int bitBuf = 0, bitCnt = 0;
 
                     for (int i = 0; i < blocks.size(); i += 6) {
-                        printf("Blocks %d-%d:\n", i, i + 5);
-                        DCY = my_processDU(blocks[i], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
-                        DCY = my_processDU(blocks[i + 1], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
-                        DCY = my_processDU(blocks[i + 2], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
-                        DCY = my_processDU(blocks[i + 3], fp, bitBuf, bitCnt, DCY, YDC_HT, YAC_HT);
+//                        printf("Blocks %d-%d:\n", i, i + 5);
+                        my_processDU(blocks[i], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+                        my_processDU(blocks[i + 1], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+                        my_processDU(blocks[i + 2], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
+                        my_processDU(blocks[i + 3], fp, bitBuf, bitCnt, YDC_HT, YAC_HT);
 
-                        DCU = my_processDU(blocks[i + 4], fp, bitBuf, bitCnt, DCU, UVDC_HT, UVAC_HT);
-                        DCV = my_processDU(blocks[i + 5], fp, bitBuf, bitCnt, DCV, UVDC_HT, UVAC_HT);
+                        my_processDU(blocks[i + 4], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT);
+                        my_processDU(blocks[i + 5], fp, bitBuf, bitCnt, UVDC_HT, UVAC_HT);
                     }
 
 

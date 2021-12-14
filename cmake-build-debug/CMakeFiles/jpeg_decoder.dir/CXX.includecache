@@ -29,6 +29,10 @@ stdlib.h
 -
 string.h
 -
+iomanip
+-
+algorithm
+-
 windows.h
 -
 
@@ -44,6 +48,8 @@ math.h
 vector
 -
 iostream
+-
+fstream
 -
 
 F:/repo/cpp/jpeg_compressor/jpeg_source/jpegenc.h

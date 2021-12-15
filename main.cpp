@@ -23,22 +23,32 @@ void encode(const string &input_file, const string &output_file) {
 }
 
 void decode(const string &input_file, const string &output_file) {
-
-
-//    bool jo_write_jpg(const char *filename, const void *data, int width, int height, int comp, int quality);
     const char *args[] = {
             "<this_program.exe>",
             input_file.c_str(),
             output_file.c_str(),
-            "490",
-            "733",
-            "3",
-            "80"
+            "d",
     };
-    if (!encode_main(7, args)) {
-        printf("ERROR\n");
+
+    if (decode_main(4, args)) {
+        cout << "Something went wrong!!!\n";
     }
 
+//    bool jo_write_jpg(const char *filename, const void *data, int width, int height, int comp, int quality);
+//    const char *args[] = {
+//            "<this_program.exe>",
+//            input_file.c_str(),
+//            output_file.c_str(),
+//            "490",
+//            "733",
+//            "3",
+//            "80"
+//    };
+//    if (!encode_main(7, args)) {
+//        printf("ERROR\n");
+//    }
+
+//    6 0 | 6 0 | 6 0 | 6 0 | 2 0 | 2 0 |
 
 //    std::ifstream input(input_file, std::ios_base::binary);
 //    if (!input.is_open()) {

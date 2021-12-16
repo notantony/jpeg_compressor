@@ -20,4 +20,6 @@ class my_compress {
 
 extern vector<unsigned char> myCompress(vector<vector<int>> &blocks);
 
+extern vector<unsigned char> compressHuffman(const vector<unsigned char > &);
+
 #endif //JPEG_COMPRESSOR_MY_COMPRESS_H

@@ -10,10 +10,20 @@ public:
 	}
 };
 
-compressor::compressor(std::vector<uint64_t> &cnt) : leaves(256) {
+
+
+compressor::compressor(std::vector<uint64_t> &cnt) {
+	int nz = 0;
+	for (int i = 0; i < cnt.size(); ++i) {
+		if (cnt[i] != 0) {
+			++nz;
+		}
+	}
+	leaves = std::vector<unsigned char> (nz);
+
 	build_tree_c(cnt);
     std::vector<unsigned char> tmp;
-    walk_c(256 + 255 - 1, tmp);
+    walk_c(leaves.size() + leaves.size() - 1 - 1, tmp);
 }
 
 const std::vector<unsigned char> &compressor::get_tree_code() const {
@@ -25,22 +35,24 @@ const std::vector<unsigned char> &compressor::get_leaves_code() const {
 
 void compressor::build_tree_c(std::vector<uint64_t> &cnt) {
 	std::priority_queue<int, std::vector<int>, cmp> q(&cnt);
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < leaves.size(); i++) {
 		q.push(i);
 		tree.push_back(node(i));
 	}
-	for (int i = 1; i < 256; i++) {
+	for (int i = 0; i + 1 < leaves.size(); i++) {
 		int a = q.top();
 		q.pop();
 		int b = q.top();
 		q.pop();
-		cnt[255 + i] = cnt[a] + cnt[b];
-		q.push(255 + i);
+//		std::cerr << "Node,l, r: " << leaves.size() + i << " " << a << " " << b << std::endl;
+		cnt[leaves.size() + i] = cnt[a] + cnt[b];
+		q.push(leaves.size() + i);
 		tree.push_back(node(a, b));
 	}
 }
 void compressor::walk_c(int x, std::vector<unsigned char> &cur) {
-	if (x < 256) {
+//	std::cerr << x << std::endl;
+	if (x < leaves.size()) {
 		leaves[global] = x;
 		tree[x].leaf = global++;
 		coded_tree.push_back(0);//up

@@ -40,6 +40,29 @@ vector<unsigned char> readBytes(const string &filename) {
     return result;
 }
 
+vector<unsigned char> getCompressedBytes(const string &filename);
+
+vector<unsigned char> compressHuffman(const vector<unsigned char> &data) {
+    string tmpName = "tmp_huffman.bin";
+    FILE *tmp = fopen(tmpName.c_str(), "wb"); // TODO;
+    for (const auto &c: data) {
+        fputc(c, tmp);
+    }
+    fclose(tmp);
+
+    ifstream tmpStream = ifstream(tmpName, ios_base::binary);
+    vector<pair<unsigned short , unsigned short >> codes = getCodes(tmpStream);
+//    for (int i = 0; i < 256; ++i) {
+//        cout << "VALUE: " << i << " CODE: " << codes[i].first << " LEN: " << codes[i].second << "\n";
+//    }
+    cout << "0 CODE_LEN: " << getCodes(tmpStream)[0].second << "\n";
+    tmpStream.close();
+
+    vector<unsigned char> result = getCompressedBytes(tmpName);
+    remove(tmpName.c_str());
+    return result;
+}
+
 vector<unsigned char> getCompressedBytes(const string &filename) {
 
     string compressedFilename = filename;

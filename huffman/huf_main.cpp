@@ -73,31 +73,63 @@ extern std::vector<std::pair<unsigned short, unsigned short>> getCodes(std::istr
             cnt[buffer[i]]++;
         }
     }
+    std::vector<unsigned char > nonZero;
+    for (int i = 0; i < 256; ++i) {
+        if (cnt[i] > 0) {
+            std::cout << "BYTE: " << i << " COUNT: " << cnt[i] << "\n";
+            nonZero.push_back(i);
+        }
+    }
+
     if (input.bad()) {
         throw std::runtime_error("Error while reading input file");
     }
-    compressor compressor(cnt);
-
-
-//    my_writev(output, compressor.get_leaves_code());
-    bitvector bv;
-    bv.push(compressor.get_tree_code());
-//    my_writev(output, bv.release());
-    bv.clear();
-
     input.clear();
     input.seekg(0, input.beg);
-    std::vector<unsigned char> tmp;
-//    test(input);
+
+    bool fail = true;
     std::vector<std::pair<unsigned short, unsigned short>> result;
-    for (int c = 0; c <= UCHAR_MAX; ++c) {
-        std::vector<unsigned char> code = compressor.get_code((unsigned char)c);
-        short unsigned codeVal = 0;
-        for (int i = 0; i < code.size(); ++i) {
-            codeVal *= 2;
-            codeVal += code[i];
+    while (fail) {
+        fail = false;
+        compressor compressor(cnt);
+
+        result = std::vector<std::pair<unsigned short, unsigned short>>();
+        for (int c = 0, nzPos = 0; c <= UCHAR_MAX; ++c) {
+            if (cnt[c] == 0) {
+                continue;
+            }
+            std::vector<unsigned char> code = compressor.get_code(nzPos++);
+            short unsigned codeVal = 0;
+            for (int i = 0; i < code.size(); ++i) {
+                codeVal *= 2;
+                codeVal += code[i];
+            }
+            if (code.size() > 16) {
+                fail = true;
+            }
+            std::cout << "CHAR: " << c << " CODE: " << codeVal << " LEN: " << code.size() << std::endl;
+            result.push_back(std::make_pair(codeVal, (short unsigned) code.size()));
         }
-        result.push_back(std::make_pair(codeVal, (short unsigned)code.size()));
+
+        if (fail) {
+            std::vector<uint64_t> newCnt(256 + 255, 0);
+            uint64_t mn = 1e18;
+            for (int i = 0; i < 256; ++i) {
+                if (cnt[i] != 0) {
+                    mn = std::min(mn, cnt[i]);
+                }
+            }
+            for (int i = 0; i < 256; ++i) {
+                if (cnt[i] == mn) {
+                    newCnt[i] = cnt[i] + 10;
+//                if (cnt[i] != 0) {
+//                    newCnt[i] = cnt[i] + 10;
+                } else {
+                    newCnt[i] = cnt[i];
+                }
+            }
+            cnt = newCnt;
+        }
     }
     return result;
 }

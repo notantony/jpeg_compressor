@@ -122,7 +122,7 @@ static void jo_DCT(float &d0, float &d1, float &d2, float &d3, float &d4, float 
 	d7 = z11 - z4;
 }
 
-static void jo_calcBits(int val, unsigned short bits[2]) {
+extern void jo_calcBits(int val, unsigned short bits[2]) {
 	int tmp1 = val < 0 ? -val : val;
 	val = val < 0 ? val - 1 : val;
 	bits[1] = 1;
@@ -206,9 +206,10 @@ static int jo_processDU(FILE *fp, int &bitBuf, int &bitCnt, float *CDU, int du_s
 	return DU[0];
 }
 
-extern int my_processDU_Analyse(const std::vector<int> &data, std::ofstream &dcData, std::ofstream &acData) {
+extern int my_processDU_Analyse(const std::vector<int> &data, int nDC, std::ofstream &dcData, std::ofstream &acData, int usebitEOB) {
 //    const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
 //    const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
+
 
 
     // Quantize/descale/zigzag the coefficients
@@ -218,35 +219,55 @@ extern int my_processDU_Analyse(const std::vector<int> &data, std::ofstream &dcD
     }
 
 //    printf("DC: %d \n", DU[0]);
+
 //    printf("Block:\n");
 //    for (int my_i = 0; my_i < 64; ++my_i) {
 //        printf("%d ", DU[my_i]);
 //    }
 //    printf("\n");
 
-    // Encode DC
-    int diff = DU[0];
-    if (diff == 0) {
-        dcData << (unsigned char) 0;
-    }
-    else {
-        unsigned short bits[2];
-        jo_calcBits(diff, bits);
-        dcData << (unsigned char) bits[1];
-//        jo_writeBits(fp, bitBuf, bitCnt, HTDC[bits[1]]);
-//        jo_writeBits(fp, bitBuf, bitCnt, bits);
+    std::vector<int> DUs;
+
+    for (int i = 0; i < nDC; ++i) {
+        if (DU[i] == 0) {
+            dcData << (unsigned char ) 0;
+//            jo_writeBits(fp, bitBuf, bitCnt, HTDC[0]);
+            nDC = i + 1;
+            break;
+        } else {
+            unsigned short bits[2];
+            jo_calcBits(DU[i], bits);
+            dcData << (unsigned char ) bits[1];
+//            jo_writeBits(fp, bitBuf, bitCnt, HTDC[bits[1]]);
+//            jo_writeBits(fp, bitBuf, bitCnt, bits);
+        }
     }
     // Encode ACs
     int end0pos = 63;
-    for (; (end0pos > 0) && (DU[end0pos] == 0); --end0pos) {
+    for (; (end0pos + 1 > nDC) && (DU[end0pos] == 0); --end0pos) {
     }
+    // TODO
     // end0pos = first element in reverse order !=0
-    if (end0pos == 0) {
-        acData << (unsigned char) 0;
-//        jo_writeBits(fp, bitBuf, bitCnt, EOB);
-        return DU[0];
+    if (DU[1] == -1 && DU[2] == 0 && DU[3] == 0 && DU[4] == 0) {
+//        std::cout << "1";
     }
-    for (int i = 1; i <= end0pos; ++i) {
+
+    if (end0pos <= nDC - 1) {
+        if (usebitEOB) {
+//            writePad(fp, bitBuf, bitCnt, false);
+        } else {
+//            bitSeq.push_back(false); // false -> no more non-zeros
+                acData << (unsigned char ) 0x00;
+//             0x00
+//            jo_writeBits(fp, bitBuf, bitCnt, EOB);
+        }
+        return -1;
+    }
+//    bitSeq.push_back(true); // true -> more non-zeros
+    if (usebitEOB) {
+//        writePad(fp, bitBuf, bitCnt, true);
+    }
+    for (int i = nDC; i <= end0pos; ++i) {
         int startpos = i;
         for (; DU[i] == 0 && i <= end0pos; ++i) {
         }
@@ -254,22 +275,35 @@ extern int my_processDU_Analyse(const std::vector<int> &data, std::ofstream &dcD
         if (nrzeroes >= 16) {
             int lng = nrzeroes >> 4;
             for (int nrmarker = 1; nrmarker <= lng; ++nrmarker)
+                // 0xF0
+                acData << (unsigned char ) 0xF0;
 //                jo_writeBits(fp, bitBuf, bitCnt, M16zeroes);
-                acData << (unsigned char ) 0xf0;
             nrzeroes &= 15;
         }
+
         unsigned short bits[2];
         jo_calcBits(DU[i], bits);
-        acData << (unsigned char) ((nrzeroes << 4) + bits[1]);
+        acData << (unsigned char ) ((nrzeroes << 4) + bits[1]);
 //        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
 //        jo_writeBits(fp, bitBuf, bitCnt, bits);
+
+//        unsigned short bits[2];
+//        jo_calcBits(map_cf(DU[i]), bits);
+//        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
+//        jo_writeBits(fp, bitBuf, bitCnt, bits);
+//        if (DU[i] == 2 || DU[i] == -2) {
+//            writePad(fp, bitBuf, bitCnt, true);
+//        } else if (DU[i] == 1 || DU[i] == -1) {
+//            writePad(fp, bitBuf, bitCnt, false);
+//        }
+
+
     }
     if (end0pos != 63) {
-        acData << (unsigned char ) 0;
+        acData << (unsigned char ) 00;
 //        jo_writeBits(fp, bitBuf, bitCnt, EOB);
     }
-//    std::cout << ftell(fp) << '\n';
-    return DU[0];
+    return -1;
 }
 
 int map_cf(int x) {
@@ -341,6 +375,103 @@ extern int jo_processDU_Orig(const std::vector<int> &data, FILE *fp, int &bitBuf
 }
 
 extern void my_processDU_Triangle(const std::vector<int> &data, int nDC, FILE *fp, int &bitBuf, int &bitCnt,
+                                  const unsigned short HTDC[256][2], const unsigned short HTAC[256][2], int usebitEOB,
+                                  std::vector<bool> &bitSeq) {
+    const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
+    const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
+
+
+
+    // Quantize/descale/zigzag the coefficients
+    int DU[64];
+    for (int i = 0; i < 64; ++i) {
+        DU[i] = data[i];
+    }
+
+//    printf("DC: %d \n", DU[0]);
+
+//    printf("Block:\n");
+//    for (int my_i = 0; my_i < 64; ++my_i) {
+//        printf("%d ", DU[my_i]);
+//    }
+//    printf("\n");
+
+    std::vector<int> DUs;
+
+    for (int i = 0; i < nDC; ++i) {
+        if (DU[i] == 0) {
+            jo_writeBits(fp, bitBuf, bitCnt, HTDC[0]);
+            nDC = i + 1;
+            break;
+        } else {
+            unsigned short bits[2];
+            jo_calcBits(DU[i], bits);
+            jo_writeBits(fp, bitBuf, bitCnt, HTDC[bits[1]]);
+            jo_writeBits(fp, bitBuf, bitCnt, bits);
+        }
+    }
+    // Encode ACs
+    int end0pos = 63;
+    for (; (end0pos + 1 > nDC) && (DU[end0pos] == 0); --end0pos) {
+    }
+    // TODO
+    // end0pos = first element in reverse order !=0
+    if (DU[1] == -1 && DU[2] == 0 && DU[3] == 0 && DU[4] == 0) {
+//        std::cout << "1";
+    }
+
+    if (end0pos <= nDC - 1) {
+        if (usebitEOB) {
+            writePad(fp, bitBuf, bitCnt, false);
+        } else {
+//            bitSeq.push_back(false); // false -> no more non-zeros
+
+//             0x00
+            jo_writeBits(fp, bitBuf, bitCnt, EOB);
+        }
+        return;
+    }
+//    bitSeq.push_back(true); // true -> more non-zeros
+    if (usebitEOB) {
+        writePad(fp, bitBuf, bitCnt, true);
+    }
+    for (int i = nDC; i <= end0pos; ++i) {
+        int startpos = i;
+        for (; DU[i] == 0 && i <= end0pos; ++i) {
+        }
+        int nrzeroes = i - startpos;
+        if (nrzeroes >= 16) {
+            int lng = nrzeroes >> 4;
+            for (int nrmarker = 1; nrmarker <= lng; ++nrmarker)
+                // 0xF0
+                jo_writeBits(fp, bitBuf, bitCnt, M16zeroes);
+            nrzeroes &= 15;
+        }
+
+        unsigned short bits[2];
+        jo_calcBits(DU[i], bits);
+        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
+        jo_writeBits(fp, bitBuf, bitCnt, bits);
+
+//        unsigned short bits[2];
+//        jo_calcBits(map_cf(DU[i]), bits);
+//        jo_writeBits(fp, bitBuf, bitCnt, HTAC[(nrzeroes << 4) + bits[1]]);
+//        jo_writeBits(fp, bitBuf, bitCnt, bits);
+//        if (DU[i] == 2 || DU[i] == -2) {
+//            writePad(fp, bitBuf, bitCnt, true);
+//        } else if (DU[i] == 1 || DU[i] == -1) {
+//            writePad(fp, bitBuf, bitCnt, false);
+//        }
+
+
+    }
+    if (end0pos != 63) {
+        jo_writeBits(fp, bitBuf, bitCnt, EOB);
+    }
+}
+
+
+extern void my_processDU_TriangleSave(const std::vector<int> &data, int nDC, FILE *fp, int &bitBuf, int &bitCnt,
                                   const unsigned short HTDC[256][2], const unsigned short HTAC[256][2], int usebitEOB) {
     const unsigned short EOB[2] = { HTAC[0x00][0], HTAC[0x00][1] };
     const unsigned short M16zeroes[2] = { HTAC[0xF0][0], HTAC[0xF0][1] };
@@ -645,19 +776,24 @@ bool jo_write_jpg(const char *filename, const void *data, int width, int height,
 	putc(1, fp);
 	fwrite(UVTable, sizeof(UVTable), 1, fp);
 	const unsigned char head1[] = { 0xFF,0xC0,0,0x11,8,(unsigned char)(height >> 8),(unsigned char)(height & 0xFF),(unsigned char)(width >> 8),(unsigned char)(width & 0xFF),3,1,(unsigned char)(subsample ? 0x22 : 0x11),0,2,0x11,1,3,0x11,1,0xFF,0xC4,0x01,0xA2,0 };
-	fwrite(head1, sizeof(head1), 1, fp);
+
+    fwrite(head1, sizeof(head1), 1, fp);
 	fwrite(std_dc_luminance_nrcodes + 1, sizeof(std_dc_luminance_nrcodes) - 1, 1, fp);
 	fwrite(std_dc_luminance_values, sizeof(std_dc_luminance_values), 1, fp);
-	putc(0x10, fp); // HTYACinfo
+
+    putc(0x10, fp); // HTYACinfo
 	fwrite(std_ac_luminance_nrcodes + 1, sizeof(std_ac_luminance_nrcodes) - 1, 1, fp);
 	fwrite(std_ac_luminance_values, sizeof(std_ac_luminance_values), 1, fp);
-	putc(1, fp); // HTUDCinfo
+
+    putc(1, fp); // HTUDCinfo
 	fwrite(std_dc_chrominance_nrcodes + 1, sizeof(std_dc_chrominance_nrcodes) - 1, 1, fp);
 	fwrite(std_dc_chrominance_values, sizeof(std_dc_chrominance_values), 1, fp);
+
 	putc(0x11, fp); // HTUACinfo
 	fwrite(std_ac_chrominance_nrcodes + 1, sizeof(std_ac_chrominance_nrcodes) - 1, 1, fp);
 	fwrite(std_ac_chrominance_values, sizeof(std_ac_chrominance_values), 1, fp);
-	static const unsigned char head2[] = { 0xFF,0xDA,0,0xC,3,1,0,2,0x11,3,0x11,0,0x3F,0 };
+
+    static const unsigned char head2[] = { 0xFF,0xDA,0,0xC,3,1,0,2,0x11,3,0x11,0,0x3F,0 };
 	fwrite(head2, sizeof(head2), 1, fp);
 
 	// Encode 8x8 macroblocks
